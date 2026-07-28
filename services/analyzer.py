@@ -1,6 +1,7 @@
 from ai.gemini_provider import analyze
 from crawler.page_fetcher import PageFetcher
 from crawler.text_extractor import TextExtractor
+from models.analysis import Analysis
 from models.opportunity import Opportunity
 
 
@@ -26,6 +27,14 @@ class Analyzer:
             source=source,
             title=title,
             url=url,
+            article=article,
+        )
+
+        analysis = Analysis(
+            id=None,
+            opportunity_id=0,  # verrà impostato dall'Engine
+            model="gemini",
+            prompt_version="v1",
             problem=result["problem"],
             customer=result["customer"],
             pain_level=result["pain_level"],
@@ -33,4 +42,4 @@ class Analyzer:
             opportunity_score=result["opportunity_score"],
         )
 
-        return opportunity, article
+        return opportunity, analysis

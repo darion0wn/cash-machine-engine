@@ -1,17 +1,16 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 
 @dataclass
 class Opportunity:
-    source: str
-    title: str
-    url: Optional[str]
+    id: Optional[int] = None
 
-    problem: Optional[str] = None
-    customer: Optional[str] = None
+    source: str = ""
+    title: str = ""
+    url: Optional[str] = None
 
-    pain_level: Optional[int] = None
-    market_size: Optional[str] = None
+    article: str = ""
 
-    opportunity_score: Optional[int] = None
+    created_at: Optional[datetime] = None

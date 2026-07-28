@@ -1,8 +1,6 @@
 import sqlite3
 from pathlib import Path
 
-from models.opportunity import Opportunity
-
 DB_PATH = Path("database/opportunities.db")
 
 
@@ -27,51 +25,32 @@ class Database:
 
             article TEXT,
 
-            problem TEXT,
-            customer TEXT,
-
-            pain_level INTEGER,
-            market_size TEXT,
-            opportunity_score INTEGER,
-
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
-        self.conn.commit()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS analyses (
 
-    def save(self, opportunity: Opportunity, article: str = ""):
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        cursor = self.conn.cursor()
+            opportunity_id INTEGER NOT NULL,
 
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO opportunities (
-                source,
-                title,
-                url,
-                article,
-                problem,
-                customer,
-                pain_level,
-                market_size,
-                opportunity_score
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                opportunity.source,
-                opportunity.title,
-                opportunity.url,
-                article,
-                opportunity.problem,
-                opportunity.customer,
-                opportunity.pain_level,
-                opportunity.market_size,
-                opportunity.opportunity_score,
-            ),
+            model TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+
+            problem TEXT NOT NULL,
+            customer TEXT NOT NULL,
+
+            pain_level INTEGER NOT NULL,
+            market_size TEXT NOT NULL,
+            opportunity_score INTEGER NOT NULL,
+
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (opportunity_id)
+                REFERENCES opportunities(id)
         )
+        """)
 
         self.conn.commit()
-
-        return cursor.rowcount > 0
