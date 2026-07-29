@@ -62,12 +62,24 @@ class Database:
             implementation_difficulty INTEGER NOT NULL,
             monetization_difficulty INTEGER NOT NULL,
 
-            -- Opportunity Analysis
-            confidence INTEGER NOT NULL,
+            -- Investment Evaluation
+            problem_score INTEGER NOT NULL,
+            market_score INTEGER NOT NULL,
+            competition_score INTEGER NOT NULL,
+            business_score INTEGER NOT NULL,
+            execution_score INTEGER NOT NULL,
+
             opportunity_score INTEGER NOT NULL,
+            investment_recommendation TEXT NOT NULL,
+
+            confidence INTEGER NOT NULL,
+            confidence_reason TEXT NOT NULL,
+
+            -- Explainability
             reasoning TEXT NOT NULL,
+            key_evidence TEXT NOT NULL,
             red_flags TEXT NOT NULL,
-            next_steps TEXT NOT NULL,
+            recommended_next_steps TEXT NOT NULL,
 
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
