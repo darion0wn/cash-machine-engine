@@ -1,38 +1,75 @@
 import requests
 
+from core.logger import Logger
 from pipeline.engine import Engine
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0"
 
-story_ids = requests.get(f"{BASE_URL}/topstories.json").json()
 
-engine = Engine()
+def main():
 
-for story_id in story_ids[:50]:
+    Logger.info("Downloading top Hacker News stories...")
 
-    story = requests.get(f"{BASE_URL}/item/{story_id}.json").json()
+    story_ids = requests.get(
+        f"{BASE_URL}/topstories.json"
+    ).json()
 
-    title = story.get("title", "")
+    Logger.info(f"Retrieved {len(story_ids)} stories.")
 
-    if not (
-        title.startswith("Show HN")
-        or title.startswith("Ask HN")
-    ):
-        continue
+    engine = Engine()
 
-    try:
+    scanned = 0
+    inserted = 0
+    skipped = 0
+    failed = 0
 
-        inserted = engine.process(
-            source="Hacker News",
-            title=title,
-            url=story.get("url")
-        )
+    for story_id in story_ids[:50]:
 
-        if inserted:
-            print(f"✅ Salvata: {title}")
-        else:
-            print(f"⏭️ Già presente: {title}")
+        story = requests.get(
+            f"{BASE_URL}/item/{story_id}.json"
+        ).json()
 
-    except Exception as e:
-        print(f"❌ Errore su '{title}'")
-        print(e)
+        title = story.get("title", "")
+
+        if not (
+            title.startswith("Show HN")
+            or title.startswith("Ask HN")
+        ):
+            continue
+
+        scanned += 1
+
+        Logger.info(f"Processing: {title}")
+
+        try:
+
+            saved = engine.process(
+                source="Hacker News",
+                title=title,
+                url=story.get("url"),
+            )
+
+            if saved:
+                inserted += 1
+                Logger.success(f"Saved: {title}")
+            else:
+                skipped += 1
+                Logger.warning(f"Already exists: {title}")
+
+        except Exception as e:
+
+            failed += 1
+
+            Logger.error(f"Failed: {title}")
+            Logger.error(str(e))
+
+    print()
+    Logger.info("========== SUMMARY ==========")
+    Logger.info(f"Scanned : {scanned}")
+    Logger.info(f"Saved   : {inserted}")
+    Logger.info(f"Skipped : {skipped}")
+    Logger.info(f"Failed  : {failed}")
+
+
+if __name__ == "__main__":
+    main()
