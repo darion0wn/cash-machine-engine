@@ -4,49 +4,56 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
+from ai.prompt_loader import PromptLoader
+from ai.provider import AIProvider
+from config.settings import AI_MODEL, PROMPT_VERSION
+from services.analysis_validator import AnalysisValidator
+
 load_dotenv()
 
-MODEL = "gemini-3.6-flash"
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+class GeminiProvider(AIProvider):
 
+    MODEL = AI_MODEL
 
-def analyze(title: str, article: str):
+    def __init__(self):
+        self.client = genai.Client(
+            api_key=os.getenv("GEMINI_API_KEY")
+        )
+        self.prompt_loader = PromptLoader()
 
-    prompt = f"""
-You are a world-class startup analyst.
+    def analyze(self, title: str, article: str) -> dict:
 
-Your job is to identify real business opportunities.
+        prompt = self.prompt_loader.load(
+            f"opportunity_{PROMPT_VERSION}",
+            title=title,
+            article=article[:12000],
+        )
 
-Analyze the following startup.
+        response = self.client.models.generate_content(
+            model=self.MODEL,
+            contents=prompt,
+        )
 
-TITLE:
-{title}
+        text = response.text.strip()
 
-CONTENT:
-{article[:12000]}
+        # rimuove eventuali blocchi markdown
+        if text.startswith("```"):
+            text = (
+                text.replace("```json", "")
+                .replace("```", "")
+                .strip()
+            )
 
-Return ONLY valid JSON.
+        # estrae il primo JSON valido
+        start = text.find("{")
+        end = text.rfind("}")
 
-{{
-    "problem": "",
-    "customer": "",
-    "pain_level": 1,
-    "market_size": "",
-    "opportunity_score": 1
-}}
-"""
+        if start == -1 or end == -1:
+            raise ValueError("No JSON object found in Gemini response.")
 
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=prompt,
-    )
+        text = text[start:end + 1]
 
-    text = response.text.strip()
+        data = json.loads(text)
 
-    if text.startswith("```"):
-        text = text.replace("```json", "").replace("```", "").strip()
-
-    return json.loads(text)
+        return AnalysisValidator.validate(data)

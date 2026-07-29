@@ -1,42 +1,42 @@
+import json
 import os
+
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
+
+from ai.prompt_loader import PromptLoader
+from ai.provider import AIProvider
+from config.settings import AI_MODEL, PROMPT_VERSION
 
 load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
 
+class GeminiProvider(AIProvider):
 
-def analyze(title: str):
+    MODEL = AI_MODEL
 
-    prompt = f"""
-You are a startup analyst.
+    def __init__(self):
+        self.client = genai.Client(
+            api_key=os.getenv("GEMINI_API_KEY")
+        )
+        self.prompt_loader = PromptLoader()
 
-Analyze this title:
+    def analyze(self, title: str, article: str) -> dict:
 
-{title}
+        prompt = self.prompt_loader.load(
+            PROMPT_VERSION,
+            title=title,
+            article=article[:12000],
+        )
 
-Return ONLY JSON.
+        response = self.client.models.generate_content(
+            model=self.MODEL,
+            contents=prompt,
+        )
 
-{{
-    "problem": "...",
-    "customer": "...",
-    "pain_level": 1,
-    "market_size": "...",
-    "opportunity_score": 1
-}}
-"""
+        text = response.text.strip()
 
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    )
+        if text.startswith("```"):
+            text = text.replace("```json", "").replace("```", "").strip()
 
-    return response.choices[0].message.content
+        return json.loads(text)
