@@ -8,6 +8,7 @@ class Database:
 
     def __init__(self):
         self.conn = sqlite3.connect(DB_PATH)
+        self.conn.execute("PRAGMA foreign_keys = ON")
         self.create_tables()
 
     def create_tables(self):
@@ -36,20 +37,43 @@ class Database:
 
             opportunity_id INTEGER NOT NULL,
 
+            -- Metadata
             model TEXT NOT NULL,
             prompt_version TEXT NOT NULL,
 
+            -- Problem Analysis
             problem TEXT NOT NULL,
             customer TEXT NOT NULL,
-
             pain_level INTEGER NOT NULL,
+            urgency INTEGER NOT NULL,
+            current_solution TEXT NOT NULL,
+            why_current_solution_fails TEXT NOT NULL,
+
+            -- Market Analysis
+            category TEXT NOT NULL,
             market_size TEXT NOT NULL,
+            market_maturity TEXT NOT NULL,
+            competition_level INTEGER NOT NULL,
+            competition TEXT NOT NULL,
+
+            -- Business Analysis
+            business_model TEXT NOT NULL,
+            competitive_advantage TEXT NOT NULL,
+            implementation_difficulty INTEGER NOT NULL,
+            monetization_difficulty INTEGER NOT NULL,
+
+            -- Opportunity Analysis
+            confidence INTEGER NOT NULL,
             opportunity_score INTEGER NOT NULL,
+            reasoning TEXT NOT NULL,
+            red_flags TEXT NOT NULL,
+            next_steps TEXT NOT NULL,
 
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
             FOREIGN KEY (opportunity_id)
                 REFERENCES opportunities(id)
+                ON DELETE CASCADE
         )
         """)
 

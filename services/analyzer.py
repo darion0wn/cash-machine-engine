@@ -1,4 +1,5 @@
-from ai.gemini_provider import analyze
+from ai.provider_factory import build_provider
+from config.settings import PROMPT_VERSION
 from crawler.page_fetcher import PageFetcher
 from crawler.text_extractor import TextExtractor
 from models.analysis import Analysis
@@ -10,6 +11,7 @@ class Analyzer:
     def __init__(self):
         self.fetcher = PageFetcher()
         self.extractor = TextExtractor()
+        self.provider = build_provider()
 
     def analyze(self, source: str, title: str, url: str | None):
 
@@ -21,7 +23,7 @@ class Analyzer:
             if html:
                 article = self.extractor.extract(html)
 
-        result = analyze(title, article)
+        result = self.provider.analyze(title, article)
 
         opportunity = Opportunity(
             source=source,
@@ -32,14 +34,10 @@ class Analyzer:
 
         analysis = Analysis(
             id=None,
-            opportunity_id=0,  # verrà impostato dall'Engine
-            model="gemini",
-            prompt_version="v1",
-            problem=result["problem"],
-            customer=result["customer"],
-            pain_level=result["pain_level"],
-            market_size=result["market_size"],
-            opportunity_score=result["opportunity_score"],
+            opportunity_id=0,
+            model=self.provider.MODEL,
+            prompt_version=PROMPT_VERSION,
+            **result,
         )
 
         return opportunity, analysis
