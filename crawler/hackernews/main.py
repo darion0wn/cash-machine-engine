@@ -2,6 +2,7 @@ import requests
 
 from core.logger import Logger
 from pipeline.engine import Engine
+from config.settings import MAX_STORIES
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0"
 
@@ -23,7 +24,7 @@ def main():
     skipped = 0
     failed = 0
 
-    for story_id in story_ids[:50]:
+    for story_id in story_ids[:MAX_STORIES]:
 
         story = requests.get(
             f"{BASE_URL}/item/{story_id}.json"
