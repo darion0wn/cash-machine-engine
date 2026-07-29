@@ -4,6 +4,7 @@ from crawler.page_fetcher import PageFetcher
 from crawler.text_extractor import TextExtractor
 from models.analysis import Analysis
 from models.opportunity import Opportunity
+from models.investment_recommendation import InvestmentRecommendation
 
 
 class Analyzer:
@@ -24,6 +25,8 @@ class Analyzer:
                 article = self.extractor.extract(html)
 
         result = self.provider.analyze(title, article)
+
+        result["investment_recommendation"] = InvestmentRecommendation(result["investment_recommendation"])
 
         opportunity = Opportunity(
             source=source,
