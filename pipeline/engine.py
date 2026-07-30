@@ -29,6 +29,9 @@ class Engine:
 
         self.analysis_repository.save(analysis)
 
-        self.report_generator.generate(analysis)
+        self.report_generator.generate(
+            opportunity,
+            analysis,
+        )
 
         return opportunity_id

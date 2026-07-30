@@ -10,9 +10,12 @@ class MarkdownReportWriter:
         self.template_engine = TemplateEngine()
         self.context_builder = ReportContextBuilder()
 
-    def write(self, analysis):
+    def write(self, opportunity, analysis):
 
-        context = self.context_builder.build(analysis)
+        context = self.context_builder.build(
+            opportunity,
+            analysis,
+        )
 
         report = self.template_engine.render(
             "templates/reports/investment_report.md",

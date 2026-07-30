@@ -1,39 +1,97 @@
+from models.investment_recommendation import InvestmentRecommendation
+
+
 class ReportContextBuilder:
 
-    def build(self, analysis):
+    def build(self, opportunity, analysis):
+
+        recommendation = analysis.investment_recommendation
+
+        if recommendation == InvestmentRecommendation.STRONG_BUY:
+            recommendation_badge = "🟢 STRONG BUY"
+
+        elif recommendation == InvestmentRecommendation.BUY:
+            recommendation_badge = "🟢 BUY"
+
+        elif recommendation == InvestmentRecommendation.WATCH:
+            recommendation_badge = "🟡 WATCH"
+
+        else:
+            recommendation_badge = "❌ PASS"
+
+        generated_at = (
+            analysis.created_at.strftime("%Y-%m-%d %H:%M UTC")
+            if analysis.created_at
+            else "Unknown"
+        )
 
         return {
+            # ------------------------------------------------------------------
+            # Header
+            # ------------------------------------------------------------------
+
             "opportunity_score": analysis.opportunity_score,
-            "investment_recommendation": analysis.investment_recommendation.value,
+            "investment_recommendation": recommendation_badge,
             "confidence": f"{analysis.confidence}%",
 
+            # ------------------------------------------------------------------
+            # Source
+            # ------------------------------------------------------------------
+
+            "source": opportunity.source,
+            "title": opportunity.title,
+            "url": opportunity.url or "N/A",
+
+            # ------------------------------------------------------------------
+            # Problem Analysis
+            # ------------------------------------------------------------------
+
             "problem_analysis": (
-                f"Problem: {analysis.problem}\n\n"
-                f"Customer: {analysis.customer}\n\n"
-                f"Pain Level: {analysis.pain_level}/10\n"
-                f"Urgency: {analysis.urgency}/10\n\n"
-                f"Current Solution:\n{analysis.current_solution}\n\n"
-                f"Why Current Solution Fails:\n"
+                "### Problem\n\n"
+                f"{analysis.problem}\n\n"
+                "### Customer\n\n"
+                f"{analysis.customer}\n\n"
+                "| Metric | Value |\n"
+                "|-------|------:|\n"
+                f"| Pain Level | {analysis.pain_level}/10 |\n"
+                f"| Urgency | {analysis.urgency}/10 |\n\n"
+                "### Current Solution\n\n"
+                f"{analysis.current_solution}\n\n"
+                "### Why Current Solution Fails\n\n"
                 f"{analysis.why_current_solution_fails}"
             ),
 
+            # ------------------------------------------------------------------
+            # Market Analysis
+            # ------------------------------------------------------------------
+
             "market_analysis": (
-                f"Category: {analysis.category}\n\n"
-                f"Market Size: {analysis.market_size}\n\n"
-                f"Market Maturity: {analysis.market_maturity}\n\n"
-                f"Competition Level: {analysis.competition_level}/10\n\n"
-                f"Competitors:\n{analysis.competition}"
+                f"**Category:** {analysis.category}\n\n"
+                f"**Market Size:** {analysis.market_size}\n\n"
+                f"**Market Maturity:** {analysis.market_maturity}\n\n"
+                f"**Competition Level:** {analysis.competition_level}/10\n\n"
+                "### Competitors\n\n"
+                f"{analysis.competition}"
             ),
 
+            # ------------------------------------------------------------------
+            # Business Analysis
+            # ------------------------------------------------------------------
+
             "business_analysis": (
-                f"Business Model:\n{analysis.business_model}\n\n"
-                f"Competitive Advantage:\n"
+                "### Business Model\n\n"
+                f"{analysis.business_model}\n\n"
+                "### Competitive Advantage\n\n"
                 f"{analysis.competitive_advantage}\n\n"
-                f"Implementation Difficulty: "
-                f"{analysis.implementation_difficulty}/10\n\n"
-                f"Monetization Difficulty: "
-                f"{analysis.monetization_difficulty}/10"
+                "| Metric | Value |\n"
+                "|-------|------:|\n"
+                f"| Implementation Difficulty | {analysis.implementation_difficulty}/10 |\n"
+                f"| Monetization Difficulty | {analysis.monetization_difficulty}/10 |"
             ),
+
+            # ------------------------------------------------------------------
+            # Investment Evaluation
+            # ------------------------------------------------------------------
 
             "investment_evaluation": (
                 "| Category | Score |\n"
@@ -44,11 +102,15 @@ class ReportContextBuilder:
                 f"| Business | {analysis.business_score}/10 |\n"
                 f"| Execution | {analysis.execution_score}/10 |\n\n"
                 f"**Confidence:** {analysis.confidence}%\n\n"
-                f"### Confidence Reason\n"
+                "### Confidence Reason\n\n"
                 f"{analysis.confidence_reason}\n\n"
-                f"### Full Reasoning\n"
+                "### Full Reasoning\n\n"
                 f"{analysis.reasoning}"
             ),
+
+            # ------------------------------------------------------------------
+            # Lists
+            # ------------------------------------------------------------------
 
             "key_evidence": "\n".join(
                 f"- {item}" for item in analysis.key_evidence
@@ -60,6 +122,12 @@ class ReportContextBuilder:
 
             "recommended_next_steps": analysis.recommended_next_steps,
 
+            # ------------------------------------------------------------------
+            # Metadata
+            # ------------------------------------------------------------------
+
+            "opportunity_id": opportunity.id,
+            "generated_at": generated_at,
             "model": analysis.model,
             "prompt_version": analysis.prompt_version,
         }

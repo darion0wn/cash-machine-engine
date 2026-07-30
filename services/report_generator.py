@@ -6,5 +6,5 @@ class ReportGenerator:
     def __init__(self):
         self.markdown_writer = MarkdownReportWriter()
 
-    def generate(self, analysis):
-        self.markdown_writer.write(analysis)
+    def generate(self, opportunity, analysis):
+        self.markdown_writer.write(opportunity, analysis)
