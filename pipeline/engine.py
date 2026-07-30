@@ -1,6 +1,7 @@
 from database.analysis_repository import AnalysisRepository
 from database.opportunity_repository import OpportunityRepository
 from services.analyzer import Analyzer
+from services.report_generator import ReportGenerator
 
 
 class Engine:
@@ -9,6 +10,7 @@ class Engine:
         self.analyzer = Analyzer()
         self.opportunity_repository = OpportunityRepository()
         self.analysis_repository = AnalysisRepository()
+        self.report_generator = ReportGenerator()
 
     def process(self, source: str, title: str, url: str | None):
 
@@ -26,5 +28,7 @@ class Engine:
         analysis.opportunity_id = opportunity_id
 
         self.analysis_repository.save(analysis)
+
+        self.report_generator.generate(analysis)
 
         return opportunity_id
