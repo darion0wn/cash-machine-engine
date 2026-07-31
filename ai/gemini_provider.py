@@ -3,7 +3,20 @@ import os
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai.errors import (
+    APIError,
+    ClientError,
+    ServerError,
+)
 
+from ai.errors import (
+    DailyQuotaExceededError,
+    InvalidApiKeyError,
+    InvalidPromptError,
+    InvalidResponseError,
+    ServiceUnavailableError,
+    TemporaryRateLimitError,
+)
 from ai.prompt_loader import PromptLoader
 from ai.provider import AIProvider
 from config.settings import AI_MODEL, PROMPT_VERSION
@@ -28,36 +41,66 @@ class GeminiProvider(AIProvider):
 
     def analyze(self, title: str, article: str) -> dict:
 
-        prompt = self.prompt_loader.load(
-            f"opportunity_{PROMPT_VERSION}",
-            title=title,
-            article=article[:12000],
-        )
+        try:
 
-        response = self.client.models.generate_content(
-            model=self.MODEL,
-            contents=prompt,
-        )
-
-        text = response.text.strip()
-
-        # rimuove eventuali blocchi markdown
-        if text.startswith("```"):
-            text = (
-                text.replace("```json", "")
-                .replace("```", "")
-                .strip()
+            prompt = self.prompt_loader.load(
+                f"opportunity_{PROMPT_VERSION}",
+                title=title,
+                article=article[:12000],
             )
 
-        # estrae il primo JSON valido
-        start = text.find("{")
-        end = text.rfind("}")
+            response = self.client.models.generate_content(
+                model=self.MODEL,
+                contents=prompt,
+            )
 
-        if start == -1 or end == -1:
-            raise ValueError("No JSON object found in Gemini response.")
+            text = response.text.strip()
 
-        text = text[start:end + 1]
+            if text.startswith("```"):
+                text = (
+                    text.replace("```json", "")
+                    .replace("```", "")
+                    .strip()
+                )
 
-        data = json.loads(text)
+            start = text.find("{")
+            end = text.rfind("}")
 
-        return AnalysisValidator.validate(data)
+            if start == -1 or end == -1:
+                raise InvalidResponseError(
+                    "No JSON object found in Gemini response."
+                )
+
+            text = text[start:end + 1]
+
+            data = json.loads(text)
+
+            return AnalysisValidator.validate(data)
+
+        except ServerError as e:
+            raise ServiceUnavailableError(str(e)) from e
+
+        except ClientError as e:
+
+            message = str(e).lower()
+
+            if (
+                "resource_exhausted" in message
+                or "generaterequestsperday" in message
+                or "quota" in message
+            ):
+                raise DailyQuotaExceededError(str(e)) from e
+
+            if "429" in message:
+                raise TemporaryRateLimitError(str(e)) from e
+
+            if "401" in message:
+                raise InvalidApiKeyError(str(e)) from e
+
+            if "400" in message:
+                raise InvalidPromptError(str(e)) from e
+
+            raise
+
+        except APIError as e:
+            raise ServiceUnavailableError(str(e)) from e
