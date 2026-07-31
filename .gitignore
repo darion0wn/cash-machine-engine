@@ -13,4 +13,4 @@ __pycache__/
 venv/
 
 # Project archives
-*.zip
+*.zipreports/markdown/*.md
