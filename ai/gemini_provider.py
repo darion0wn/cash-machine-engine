@@ -16,6 +16,10 @@ class GeminiProvider(AIProvider):
 
     MODEL = AI_MODEL
 
+    @property
+    def model(self) -> str:
+        return self.MODEL
+
     def __init__(self):
         self.client = genai.Client(
             api_key=os.getenv("GEMINI_API_KEY")

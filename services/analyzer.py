@@ -38,7 +38,7 @@ class Analyzer:
         analysis = Analysis(
             id=None,
             opportunity_id=0,
-            model=self.provider.MODEL,
+            model=self.provider.model,
             prompt_version=PROMPT_VERSION,
             **result,
         )
