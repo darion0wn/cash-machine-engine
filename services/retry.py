@@ -1,6 +1,8 @@
 import time
 from collections.abc import Callable
 
+from ai.error_classifier import ErrorClassifier
+
 
 class Retry:
 
@@ -13,7 +15,6 @@ class Retry:
     ):
 
         current_delay = delay
-
         last_exception = None
 
         for attempt in range(1, attempts + 1):
@@ -24,6 +25,9 @@ class Retry:
             except Exception as e:
 
                 last_exception = e
+
+                if not ErrorClassifier.should_retry(e):
+                    raise
 
                 if attempt == attempts:
                     break
