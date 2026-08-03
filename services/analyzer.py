@@ -14,19 +14,36 @@ class Analyzer:
         self.extractor = TextExtractor()
         self.provider = build_provider()
 
-    def analyze(self, source: str, title: str, url: str | None):
+    def analyze(
+        self,
+        source: str,
+        title: str,
+        url: str | None,
+        article: str | None = None,
+    ):
 
-        article = ""
+        if article is None:
 
-        if url:
-            html = self.fetcher.fetch(url)
+            article = ""
 
-            if html:
-                article = self.extractor.extract(html)
+            if url:
 
-        result = self.provider.analyze(title, article)
+                html = self.fetcher.fetch(url)
 
-        result["investment_recommendation"] = InvestmentRecommendation(result["investment_recommendation"])
+                if html:
+
+                    article = self.extractor.extract_html(html)
+
+        result = self.provider.analyze(
+            title=title,
+            article=article,
+        )
+
+        result["investment_recommendation"] = (
+            InvestmentRecommendation(
+                result["investment_recommendation"]
+            )
+        )
 
         opportunity = Opportunity(
             source=source,

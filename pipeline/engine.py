@@ -12,12 +12,19 @@ class Engine:
         self.analysis_repository = AnalysisRepository()
         self.report_generator = ReportGenerator()
 
-    def process(self, source: str, title: str, url: str | None):
+    def process(
+        self,
+        source: str,
+        title: str,
+        url: str | None,
+        article: str | None = None,
+    ):
 
         opportunity, analysis = self.analyzer.analyze(
             source=source,
             title=title,
             url=url,
+            article=article,
         )
 
         opportunity_id = self.opportunity_repository.save(opportunity)
