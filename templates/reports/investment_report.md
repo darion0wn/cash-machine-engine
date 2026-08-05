@@ -1,50 +1,82 @@
-# Investment Memo
+# Cash Machine Opportunity Report
 
 ---
 
-# Opportunity Overview
+# Executive Summary
 
-## Opportunity Score
+## Cash Machine Score
 
-# {{ opportunity_score }}/100
+# {{ cash_machine_score }}/100
 
-**Recommendation:** {{ investment_recommendation }}
+**Verdict:** {{ build_verdict }}
+
+**Investment Recommendation:** {{ investment_recommendation }}
 
 **Confidence:** {{ confidence }}
 
 ---
 
-# Source
+# Opportunity
 
 | Field | Value |
 |-------|-------|
-| Platform | {{ source }} |
+| Source | {{ source }} |
 | Title | {{ title }} |
 | URL | {{ url }} |
 
 ---
 
-# Problem Analysis
+# Problem
 
 {{ problem_analysis }}
 
 ---
 
-# Market Analysis
+# Market
 
 {{ market_analysis }}
 
 ---
 
-# Business Analysis
+# Business
 
 {{ business_analysis }}
 
 ---
 
-# Investment Evaluation
+# MVP
+
+{{ mvp_description }}
+
+---
+
+# Pricing Strategy
+
+{{ pricing_strategy }}
+
+---
+
+# Ideal Customer
+
+{{ ideal_customer }}
+
+---
+
+# Opportunity Evaluation
 
 {{ investment_evaluation }}
+
+---
+
+# Biggest Risk
+
+{{ biggest_risk }}
+
+---
+
+# Next Action
+
+{{ next_action }}
 
 ---
 

@@ -31,7 +31,11 @@ class ReportContextBuilder:
             # ------------------------------------------------------------------
 
             "opportunity_score": analysis.opportunity_score,
+            "cash_machine_score": analysis.cash_machine_score,
+            "build_verdict": analysis.build_verdict,
+
             "investment_recommendation": recommendation_badge,
+
             "confidence": f"{analysis.confidence}%",
 
             # ------------------------------------------------------------------
@@ -51,6 +55,8 @@ class ReportContextBuilder:
                 f"{analysis.problem}\n\n"
                 "### Customer\n\n"
                 f"{analysis.customer}\n\n"
+                "### Ideal Customer\n\n"
+                f"{analysis.ideal_customer}\n\n"
                 "| Metric | Value |\n"
                 "|-------|------:|\n"
                 f"| Pain Level | {analysis.pain_level}/10 |\n"
@@ -81,8 +87,12 @@ class ReportContextBuilder:
             "business_analysis": (
                 "### Business Model\n\n"
                 f"{analysis.business_model}\n\n"
+                "### Pricing Strategy\n\n"
+                f"{analysis.pricing_strategy}\n\n"
                 "### Competitive Advantage\n\n"
                 f"{analysis.competitive_advantage}\n\n"
+                "### MVP Description\n\n"
+                f"{analysis.mvp_description}\n\n"
                 "| Metric | Value |\n"
                 "|-------|------:|\n"
                 f"| Implementation Difficulty | {analysis.implementation_difficulty}/10 |\n"
@@ -100,13 +110,32 @@ class ReportContextBuilder:
                 f"| Market | {analysis.market_score}/10 |\n"
                 f"| Competition | {analysis.competition_score}/10 |\n"
                 f"| Business | {analysis.business_score}/10 |\n"
-                f"| Execution | {analysis.execution_score}/10 |\n\n"
+                f"| Execution | {analysis.execution_score}/10 |\n"
+                f"| AI Leverage | {analysis.ai_leverage_score}/10 |\n"
+                f"| Distribution | {analysis.distribution_score}/10 |\n\n"
+                f"## Cash Machine Score\n\n"
+                f"**{analysis.cash_machine_score}/100**\n\n"
+                f"**Build Verdict:** {analysis.build_verdict}\n\n"
                 f"**Confidence:** {analysis.confidence}%\n\n"
                 "### Confidence Reason\n\n"
                 f"{analysis.confidence_reason}\n\n"
                 "### Full Reasoning\n\n"
                 f"{analysis.reasoning}"
             ),
+
+            # ------------------------------------------------------------------
+            # New Sections
+            # ------------------------------------------------------------------
+
+            "ideal_customer": analysis.ideal_customer,
+
+            "pricing_strategy": analysis.pricing_strategy,
+
+            "mvp_description": analysis.mvp_description,
+
+            "biggest_risk": analysis.biggest_risk,
+
+            "next_action": analysis.next_action,
 
             # ------------------------------------------------------------------
             # Lists

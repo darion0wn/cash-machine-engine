@@ -22,6 +22,7 @@ class Analysis:
 
     problem: str
     customer: str
+    ideal_customer: str
 
     pain_level: int
     urgency: int
@@ -45,13 +46,17 @@ class Analysis:
     # -------------------------------------------------------------------------
 
     business_model: str
+    pricing_strategy: str
+
     competitive_advantage: str
+
+    mvp_description: str
 
     implementation_difficulty: int
     monetization_difficulty: int
 
     # -------------------------------------------------------------------------
-    # Investment Evaluation
+    # Opportunity Scores
     # -------------------------------------------------------------------------
 
     problem_score: int
@@ -60,7 +65,19 @@ class Analysis:
     business_score: int
     execution_score: int
 
+    ai_leverage_score: int
+    distribution_score: int
+
+    cash_machine_score: int
+
+    # Compatibilità
     opportunity_score: int
+
+    # -------------------------------------------------------------------------
+    # Final Verdict
+    # -------------------------------------------------------------------------
+
+    build_verdict: str
 
     investment_recommendation: InvestmentRecommendation
 
@@ -76,6 +93,10 @@ class Analysis:
     key_evidence: list[str]
 
     red_flags: list[str]
+
+    biggest_risk: str
+
+    next_action: str
 
     recommended_next_steps: str
 

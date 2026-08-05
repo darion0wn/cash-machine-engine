@@ -67,19 +67,28 @@ class Database:
 
             problem TEXT NOT NULL,
             customer TEXT NOT NULL,
+            ideal_customer TEXT,
+
             pain_level INTEGER NOT NULL,
             urgency INTEGER NOT NULL,
+
             current_solution TEXT NOT NULL,
             why_current_solution_fails TEXT NOT NULL,
 
             category TEXT NOT NULL,
             market_size TEXT NOT NULL,
             market_maturity TEXT NOT NULL,
+
             competition_level INTEGER NOT NULL,
             competition TEXT NOT NULL,
 
             business_model TEXT NOT NULL,
+            pricing_strategy TEXT,
+
             competitive_advantage TEXT NOT NULL,
+
+            mvp_description TEXT,
+
             implementation_difficulty INTEGER NOT NULL,
             monetization_difficulty INTEGER NOT NULL,
 
@@ -89,15 +98,30 @@ class Database:
             business_score INTEGER NOT NULL,
             execution_score INTEGER NOT NULL,
 
+            ai_leverage_score INTEGER DEFAULT 0,
+            distribution_score INTEGER DEFAULT 0,
+
+            cash_machine_score INTEGER DEFAULT 0,
+
             opportunity_score INTEGER NOT NULL,
+
+            build_verdict TEXT,
+
             investment_recommendation TEXT NOT NULL,
 
             confidence INTEGER NOT NULL,
             confidence_reason TEXT NOT NULL,
 
             reasoning TEXT NOT NULL,
+
             key_evidence TEXT NOT NULL,
+
             red_flags TEXT NOT NULL,
+
+            biggest_risk TEXT,
+
+            next_action TEXT,
+
             recommended_next_steps TEXT NOT NULL,
 
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -113,6 +137,10 @@ class Database:
     def migrate(self):
 
         cursor = self.conn.cursor()
+
+        # ---------------------------------------------------------
+        # Opportunities
+        # ---------------------------------------------------------
 
         cursor.execute(
             "PRAGMA table_info(opportunities)"
@@ -172,5 +200,41 @@ class Database:
                 SET updated_at = CURRENT_TIMESTAMP
                 """
             )
+
+        # ---------------------------------------------------------
+        # Analyses
+        # ---------------------------------------------------------
+
+        cursor.execute(
+            "PRAGMA table_info(analyses)"
+        )
+
+        analysis_columns = {
+            row[1]
+            for row in cursor.fetchall()
+        }
+
+        analysis_migrations = {
+            "ideal_customer": "TEXT",
+            "pricing_strategy": "TEXT",
+            "mvp_description": "TEXT",
+            "ai_leverage_score": "INTEGER DEFAULT 0",
+            "distribution_score": "INTEGER DEFAULT 0",
+            "cash_machine_score": "INTEGER DEFAULT 0",
+            "build_verdict": "TEXT",
+            "biggest_risk": "TEXT",
+            "next_action": "TEXT",
+        }
+
+        for column, definition in analysis_migrations.items():
+
+            if column not in analysis_columns:
+
+                cursor.execute(
+                    f"""
+                    ALTER TABLE analyses
+                    ADD COLUMN {column} {definition}
+                    """
+                )
 
         self.conn.commit()
