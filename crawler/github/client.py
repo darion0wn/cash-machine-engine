@@ -1,4 +1,5 @@
 import base64
+import os
 
 import requests
 
@@ -9,10 +10,20 @@ class GitHubClient:
 
     BASE_URL = "https://api.github.com"
 
-    HEADERS = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "CashMachineEngine",
-    }
+    def __init__(self):
+
+        token = os.getenv("GITHUB_TOKEN")
+
+        self.headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "CashMachineEngine",
+        }
+
+        if token:
+
+            self.headers["Authorization"] = (
+                f"Bearer {token}"
+            )
 
     def fetch_trending(
         self,
@@ -29,7 +40,7 @@ class GitHubClient:
 
         response = requests.get(
             url,
-            headers=self.HEADERS,
+            headers=self.headers,
             timeout=30,
         )
 
@@ -72,7 +83,7 @@ class GitHubClient:
 
         response = requests.get(
             url,
-            headers=self.HEADERS,
+            headers=self.headers,
             timeout=30,
         )
 
