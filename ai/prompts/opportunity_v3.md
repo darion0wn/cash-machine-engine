@@ -264,7 +264,7 @@ WATCH
 
 SKIP
 
-Confidence (1-10)
+Confidence (1–10): How confident are you in this analysis based on the information available? Do NOT estimate the startup's probability of success. Estimate only the reliability of your own assessment.
 
 Confidence in your own analysis.
 

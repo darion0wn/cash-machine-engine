@@ -3,7 +3,7 @@ from database.opportunity_repository import OpportunityRepository
 from models.opportunity_status import OpportunityStatus
 from services.analyzer import Analyzer
 from services.report_generator import ReportGenerator
-
+from services.ranking_engine import RankingEngine
 
 class AnalysisWorker:
 
@@ -16,6 +16,8 @@ class AnalysisWorker:
         self.analysis_repository = AnalysisRepository()
 
         self.report_generator = ReportGenerator()
+
+        self.ranking_engine = RankingEngine()
 
     def run_once(self):
 
@@ -45,6 +47,10 @@ class AnalysisWorker:
             )
 
             analysis.opportunity_id = opportunity.id
+
+            analysis = self.ranking_engine.calculate(
+                analysis
+            )
 
             self.analysis_repository.save(
                 analysis

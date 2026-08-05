@@ -118,7 +118,7 @@ class AnalysisValidator:
         ):
 
             mapping = {
-                "BUILD": "INVEST",
+                "BUILD": "BUY",
                 "WATCH": "WATCH",
                 "SKIP": "PASS",
             }

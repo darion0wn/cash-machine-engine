@@ -100,4 +100,14 @@ class Analysis:
 
     recommended_next_steps: str
 
+    # -------------------------------------------------------------------------
+    # Ranking Engine
+    # -------------------------------------------------------------------------
+
+    trend_score: int = 0
+
+    ranking_score: int = 0
+
+    portfolio_status: str = "WATCH"
+
     created_at: datetime | None = None

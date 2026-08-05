@@ -124,6 +124,12 @@ class Database:
 
             recommended_next_steps TEXT NOT NULL,
 
+            trend_score INTEGER DEFAULT 0,
+
+            ranking_score INTEGER DEFAULT 0,
+
+            portfolio_status TEXT DEFAULT 'WATCH',
+
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
             FOREIGN KEY (opportunity_id)
@@ -229,6 +235,32 @@ class Database:
         for column, definition in analysis_migrations.items():
 
             if column not in analysis_columns:
+
+                cursor.execute(
+                    f"""
+                    ALTER TABLE analyses
+                    ADD COLUMN {column} {definition}
+                    """
+                )
+
+        cursor.execute(
+            "PRAGMA table_info(analyses)"
+        )
+
+        columns = {
+            row[1]
+            for row in cursor.fetchall()
+        }
+
+        migrations = {
+            "trend_score": "INTEGER DEFAULT 0",
+            "ranking_score": "INTEGER DEFAULT 0",
+            "portfolio_status": "TEXT DEFAULT 'WATCH'",
+        }
+
+        for column, definition in migrations.items():
+
+            if column not in columns:
 
                 cursor.execute(
                     f"""

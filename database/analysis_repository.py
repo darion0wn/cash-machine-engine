@@ -78,11 +78,17 @@ class AnalysisRepository:
 
                 next_action,
 
+                trend_score,
+
+                ranking_score,
+
+                portfolio_status,
+
                 recommended_next_steps
 
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
             """,
             (
@@ -149,6 +155,12 @@ class AnalysisRepository:
 
                 analysis.next_action,
 
+                analysis.trend_score,
+
+                analysis.ranking_score,
+
+                analysis.portfolio_status,
+
                 analysis.recommended_next_steps,
             ),
         )
@@ -156,3 +168,69 @@ class AnalysisRepository:
         self.db.conn.commit()
 
         return cursor.lastrowid
+    
+    def find_all(self):
+
+        cursor = self.db.conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM analyses
+            ORDER BY id
+            """
+        )
+
+        rows = cursor.fetchall()
+
+        analyses = []
+
+        columns = [description[0] for description in cursor.description]
+
+        for row in rows:
+
+            data = dict(zip(columns, row))
+
+            data["key_evidence"] = json.loads(
+                data["key_evidence"]
+            )
+
+            data["red_flags"] = json.loads(
+                data["red_flags"]
+            )
+
+            analyses.append(
+                Analysis(**data)
+            )
+
+        return analyses
+
+    def update_ranking(
+        self,
+        analysis_id: int,
+        ranking_score: int,
+        portfolio_status: str,
+    ):
+
+        cursor = self.db.conn.cursor()
+
+        cursor.execute(
+            """
+            UPDATE analyses
+
+            SET
+
+                ranking_score = ?,
+
+                portfolio_status = ?
+
+            WHERE id = ?
+            """,
+            (
+                ranking_score,
+                portfolio_status,
+                analysis_id,
+            ),
+        )
+
+        self.db.conn.commit()
