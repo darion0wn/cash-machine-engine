@@ -1,8 +1,9 @@
 import requests
 
-from core.logger import Logger
-from pipeline.engine import Engine
 from config.settings import MAX_STORIES
+from core.logger import Logger
+from models.opportunity import Opportunity
+from pipeline.engine import Engine
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0"
 
@@ -44,31 +45,53 @@ def main():
 
         try:
 
-            saved = engine.process(
+            opportunity = Opportunity(
+
                 source="Hacker News",
+
                 title=title,
+
                 url=story.get("url"),
+
+                article=story.get("text", ""),
+            )
+
+            saved = engine.process(
+                opportunity
             )
 
             if saved:
+
                 inserted += 1
+
                 Logger.success(f"Saved: {title}")
+
             else:
+
                 skipped += 1
-                Logger.warning(f"Already exists: {title}")
+
+                Logger.warning(
+                    f"Already exists: {title}"
+                )
 
         except Exception as e:
 
             failed += 1
 
             Logger.error(f"Failed: {title}")
+
             Logger.error(str(e))
 
     print()
+
     Logger.info("========== SUMMARY ==========")
+
     Logger.info(f"Scanned : {scanned}")
+
     Logger.info(f"Saved   : {inserted}")
+
     Logger.info(f"Skipped : {skipped}")
+
     Logger.info(f"Failed  : {failed}")
 
 

@@ -10,17 +10,7 @@ class Engine:
 
     def process(
         self,
-        source: str,
-        title: str,
-        url: str | None,
-        article: str | None = None,
-    ):
-
-        opportunity = Opportunity(
-            source=source,
-            title=title,
-            url=url,
-            article=article or "",
-        )
+        opportunity: Opportunity,
+    ) -> int | None:
 
         return self.repository.save(opportunity)

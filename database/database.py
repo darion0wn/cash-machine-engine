@@ -27,6 +27,24 @@ class Database:
 
             article TEXT,
 
+            description TEXT,
+
+            homepage TEXT,
+
+            language TEXT,
+
+            topics TEXT,
+
+            license TEXT,
+
+            stars INTEGER DEFAULT 0,
+
+            forks INTEGER DEFAULT 0,
+
+            watchers INTEGER DEFAULT 0,
+
+            open_issues INTEGER DEFAULT 0,
+
             status TEXT NOT NULL DEFAULT 'PENDING',
 
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -102,6 +120,29 @@ class Database:
             row[1]
             for row in cursor.fetchall()
         }
+
+        migrations = {
+            "description": "TEXT",
+            "homepage": "TEXT",
+            "language": "TEXT",
+            "topics": "TEXT",
+            "license": "TEXT",
+            "stars": "INTEGER DEFAULT 0",
+            "forks": "INTEGER DEFAULT 0",
+            "watchers": "INTEGER DEFAULT 0",
+            "open_issues": "INTEGER DEFAULT 0",
+        }
+
+        for column, definition in migrations.items():
+
+            if column not in columns:
+
+                cursor.execute(
+                    f"""
+                    ALTER TABLE opportunities
+                    ADD COLUMN {column} {definition}
+                    """
+                )
 
         if "status" not in columns:
 

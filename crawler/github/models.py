@@ -23,3 +23,15 @@ class GitHubRepository:
     updated_at: str
 
     readme: str | None = None
+
+    homepage: str | None = None
+
+    topics: list[str] | None = None
+
+    license: str | None = None
+
+    watchers: int = 0
+
+    default_branch: str = ""
+
+    updated_at: str = ""

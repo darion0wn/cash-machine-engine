@@ -1,3 +1,5 @@
+import json
+
 from database.database import Database
 from models.opportunity import Opportunity
 from models.opportunity_status import OpportunityStatus
@@ -23,16 +25,40 @@ class OpportunityRepository:
                 title,
                 url,
                 article,
+
+                description,
+                homepage,
+                language,
+                topics,
+                license,
+
+                stars,
+                forks,
+                watchers,
+                open_issues,
+
                 status
 
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 opportunity.source,
                 opportunity.title,
                 opportunity.url,
                 opportunity.article,
+
+                opportunity.description,
+                opportunity.homepage,
+                opportunity.language,
+                json.dumps(opportunity.topics or []),
+                opportunity.license,
+
+                opportunity.stars,
+                opportunity.forks,
+                opportunity.watchers,
+                opportunity.open_issues,
+
                 opportunity.status.value,
             ),
         )
@@ -56,10 +82,26 @@ class OpportunityRepository:
                 title,
                 url,
                 article,
+
+                description,
+                homepage,
+                language,
+                topics,
+                license,
+
+                stars,
+                forks,
+                watchers,
+                open_issues,
+
                 status
+
             FROM opportunities
+
             WHERE status = ?
+
             ORDER BY id
+
             LIMIT 1
             """,
             (
@@ -78,7 +120,19 @@ class OpportunityRepository:
             title=row[2],
             url=row[3],
             article=row[4],
-            status=OpportunityStatus(row[5]),
+
+            description=row[5] or "",
+            homepage=row[6],
+            language=row[7],
+            topics=json.loads(row[8]) if row[8] else [],
+            license=row[9],
+
+            stars=row[10],
+            forks=row[11],
+            watchers=row[12],
+            open_issues=row[13],
+
+            status=OpportunityStatus(row[14]),
         )
 
     def update_status(

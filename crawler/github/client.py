@@ -101,3 +101,48 @@ class GitHubClient:
             "utf-8",
             errors="ignore",
         )
+
+    def fetch_repository(
+        self,
+        repository: GitHubRepository,
+    ) -> GitHubRepository:
+
+        url = (
+            f"{self.BASE_URL}/repos/"
+            f"{repository.full_name}"
+        )
+
+        response = requests.get(
+            url,
+            headers=self.headers,
+            timeout=30,
+        )
+
+        response.raise_for_status()
+
+        payload = response.json()
+
+        repository.homepage = payload.get("homepage")
+
+        repository.topics = payload.get("topics", [])
+
+        if payload.get("license"):
+
+            repository.license = payload["license"]["spdx_id"]
+
+        repository.watchers = payload.get(
+            "subscribers_count",
+            0,
+        )
+
+        repository.default_branch = payload.get(
+            "default_branch",
+            "",
+        )
+
+        repository.updated_at = payload.get(
+            "updated_at",
+            "",
+        )
+
+        return repository

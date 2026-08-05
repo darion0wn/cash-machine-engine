@@ -1,4 +1,5 @@
 from crawler.github.client import GitHubClient
+from models.opportunity import Opportunity
 from pipeline.engine import Engine
 
 
@@ -28,15 +29,45 @@ def main():
 
         try:
 
+            repository = client.fetch_repository(
+                repository
+            )
+
             repository.readme = client.fetch_readme(
                 repository
             )
 
-            opportunity_id = engine.process(
+            opportunity = Opportunity(
+
                 source="GitHub",
+
                 title=repository.full_name,
+
                 url=repository.html_url,
+
                 article=repository.readme,
+
+                description=repository.description or "",
+
+                homepage=repository.homepage,
+
+                language=repository.language,
+
+                topics=repository.topics,
+
+                license=repository.license,
+
+                stars=repository.stars,
+
+                forks=repository.forks,
+
+                watchers=repository.watchers,
+
+                open_issues=repository.open_issues,
+            )
+
+            opportunity_id = engine.process(
+                opportunity
             )
 
             if opportunity_id:
