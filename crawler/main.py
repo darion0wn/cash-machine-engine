@@ -1,5 +1,6 @@
 from crawler.github.main import main as github_main
 from crawler.hackernews.main import main as hackernews_main
+from crawler.producthunt.main import main as producthunt_main
 
 from pipeline.main import main as pipeline_main
 
@@ -26,17 +27,22 @@ def main():
     print("=" * 80)
 
     run_step(
-        "[1/3] Hacker News",
+        "[1/4] Hacker News",
         hackernews_main,
     )
 
     run_step(
-        "[2/3] GitHub",
+        "[2/4] GitHub",
         github_main,
     )
 
     run_step(
-        "[3/3] Analysis Worker",
+        "[3/4] Product Hunt",
+        producthunt_main,
+    )
+
+    run_step(
+        "[4/4] Analysis Worker",
         pipeline_main,
     )
 

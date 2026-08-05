@@ -10,16 +10,60 @@ class OpportunityRepository:
     def __init__(self):
         self.db = Database()
 
+    def exists(
+        self,
+        opportunity: Opportunity,
+    ) -> bool:
+
+        cursor = self.db.conn.cursor()
+
+        if opportunity.url:
+
+            cursor.execute(
+                """
+                SELECT 1
+                FROM opportunities
+                WHERE source = ?
+                  AND url = ?
+                LIMIT 1
+                """,
+                (
+                    opportunity.source,
+                    opportunity.url,
+                ),
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                SELECT 1
+                FROM opportunities
+                WHERE source = ?
+                  AND title = ?
+                LIMIT 1
+                """,
+                (
+                    opportunity.source,
+                    opportunity.title,
+                ),
+            )
+
+        return cursor.fetchone() is not None
+
     def save(
         self,
         opportunity: Opportunity,
     ) -> int | None:
 
+        if self.exists(opportunity):
+            return None
+
         cursor = self.db.conn.cursor()
 
         cursor.execute(
             """
-            INSERT OR IGNORE INTO opportunities (
+            INSERT INTO opportunities (
 
                 source,
                 title,
@@ -69,12 +113,11 @@ class OpportunityRepository:
 
         self.db.conn.commit()
 
-        if cursor.rowcount == 0:
-            return None
-
         return cursor.lastrowid
 
-    def next_pending(self) -> Opportunity | None:
+    def next_pending(
+        self,
+    ) -> Opportunity | None:
 
         cursor = self.db.conn.cursor()
 
