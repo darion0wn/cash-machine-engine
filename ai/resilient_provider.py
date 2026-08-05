@@ -1,4 +1,5 @@
 from ai.provider import AIProvider
+from models.opportunity import Opportunity
 from services.retry import Retry
 
 
@@ -13,13 +14,11 @@ class ResilientProvider(AIProvider):
 
     def analyze(
         self,
-        title: str,
-        article: str,
+        opportunity: Opportunity,
     ) -> dict:
 
         return Retry.run(
             lambda: self._provider.analyze(
-                title=title,
-                article=article,
+                opportunity
             )
         )

@@ -41,10 +41,7 @@ class AnalysisWorker:
         try:
 
             _, analysis = self.analyzer.analyze(
-                source=opportunity.source,
-                title=opportunity.title,
-                url=opportunity.url,
-                article=opportunity.article,
+                opportunity
             )
 
             analysis.opportunity_id = opportunity.id

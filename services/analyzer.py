@@ -16,40 +16,22 @@ class Analyzer:
 
     def analyze(
         self,
-        source: str,
-        title: str,
-        url: str | None,
-        article: str | None = None,
+        opportunity: Opportunity,
     ):
 
-        if article is None:
+        if not opportunity.article and opportunity.url:
 
-            article = ""
+            html = self.fetcher.fetch(opportunity.url)
 
-            if url:
+            if html:
+                opportunity.article = self.extractor.extract_html(html)
 
-                html = self.fetcher.fetch(url)
-
-                if html:
-
-                    article = self.extractor.extract_html(html)
-
-        result = self.provider.analyze(
-            title=title,
-            article=article,
-        )
+        result = self.provider.analyze(opportunity)
 
         result["investment_recommendation"] = (
             InvestmentRecommendation(
                 result["investment_recommendation"]
             )
-        )
-
-        opportunity = Opportunity(
-            source=source,
-            title=title,
-            url=url,
-            article=article,
         )
 
         analysis = Analysis(

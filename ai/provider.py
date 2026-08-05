@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from models.opportunity import Opportunity
+
 
 class AIProvider(ABC):
 
@@ -12,8 +14,7 @@ class AIProvider(ABC):
     @abstractmethod
     def analyze(
         self,
-        title: str,
-        article: str,
+        opportunity: Opportunity,
     ) -> dict:
         """Analyze an opportunity and return structured data."""
         pass

@@ -1,6 +1,6 @@
 import json
 import os
-
+from models.opportunity import Opportunity
 from dotenv import load_dotenv
 from google import genai
 from google.genai.errors import (
@@ -39,14 +39,36 @@ class GeminiProvider(AIProvider):
         )
         self.prompt_loader = PromptLoader()
 
-    def analyze(self, title: str, article: str) -> dict:
+    def analyze(self,opportunity: Opportunity,) -> dict:
 
         try:
 
             prompt = self.prompt_loader.load(
                 f"opportunity_{PROMPT_VERSION}",
-                title=title,
-                article=article[:12000],
+
+                source=opportunity.source,
+
+                title=opportunity.title,
+
+                description=opportunity.description or "Unknown",
+
+                homepage=opportunity.homepage or "Unknown",
+
+                website_text=(opportunity.website_text or "Unknown")[:8000],
+
+                language=opportunity.language or "Unknown",
+
+                topics=", ".join(opportunity.topics or []) or "Unknown",
+
+                stars=opportunity.stars,
+
+                forks=opportunity.forks,
+
+                watchers=opportunity.watchers,
+
+                open_issues=opportunity.open_issues,
+
+                article=(opportunity.article or "")[:12000],
             )
 
             response = self.client.models.generate_content(
