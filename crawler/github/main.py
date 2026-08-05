@@ -1,4 +1,5 @@
 from crawler.github.client import GitHubClient
+from enrichment.website_enricher import WebsiteEnricher
 from models.opportunity import Opportunity
 from pipeline.engine import Engine
 
@@ -6,6 +7,8 @@ from pipeline.engine import Engine
 def main():
 
     client = GitHubClient()
+
+    website_enricher = WebsiteEnricher()
 
     engine = Engine()
 
@@ -37,6 +40,10 @@ def main():
                 repository
             )
 
+            website_text = website_enricher.enrich(
+                repository.homepage
+            )
+
             opportunity = Opportunity(
 
                 source="GitHub",
@@ -50,6 +57,8 @@ def main():
                 description=repository.description or "",
 
                 homepage=repository.homepage,
+
+                website_text=website_text,
 
                 language=repository.language,
 

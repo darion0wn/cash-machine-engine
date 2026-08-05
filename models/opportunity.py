@@ -23,6 +23,8 @@ class Opportunity:
 
     homepage: Optional[str] = None
 
+    website_text: str = ""
+
     language: Optional[str] = None
 
     topics: list[str] | None = None

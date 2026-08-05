@@ -31,6 +31,8 @@ class Database:
 
             homepage TEXT,
 
+            website_text TEXT,
+
             language TEXT,
 
             topics TEXT,
@@ -124,6 +126,7 @@ class Database:
         migrations = {
             "description": "TEXT",
             "homepage": "TEXT",
+            "website_text": "TEXT",
             "language": "TEXT",
             "topics": "TEXT",
             "license": "TEXT",

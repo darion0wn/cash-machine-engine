@@ -16,13 +16,15 @@ class WebsiteEnricher:
     ) -> str:
 
         if not url:
-
             return ""
 
         html = self.fetcher.fetch(url)
 
         if not html:
-
             return ""
 
-        return self.extractor.extract(html)
+        try:
+            return self.extractor.extract_html(html)
+
+        except Exception:
+            return ""

@@ -28,6 +28,8 @@ class OpportunityRepository:
 
                 description,
                 homepage,
+                website_text,
+
                 language,
                 topics,
                 license,
@@ -40,7 +42,7 @@ class OpportunityRepository:
                 status
 
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 opportunity.source,
@@ -50,6 +52,8 @@ class OpportunityRepository:
 
                 opportunity.description,
                 opportunity.homepage,
+                opportunity.website_text,
+
                 opportunity.language,
                 json.dumps(opportunity.topics or []),
                 opportunity.license,
@@ -85,6 +89,8 @@ class OpportunityRepository:
 
                 description,
                 homepage,
+                website_text,
+
                 language,
                 topics,
                 license,
@@ -123,16 +129,18 @@ class OpportunityRepository:
 
             description=row[5] or "",
             homepage=row[6],
-            language=row[7],
-            topics=json.loads(row[8]) if row[8] else [],
-            license=row[9],
+            website_text=row[7] or "",
 
-            stars=row[10],
-            forks=row[11],
-            watchers=row[12],
-            open_issues=row[13],
+            language=row[8],
+            topics=json.loads(row[9]) if row[9] else [],
+            license=row[10],
 
-            status=OpportunityStatus(row[14]),
+            stars=row[11],
+            forks=row[12],
+            watchers=row[13],
+            open_issues=row[14],
+
+            status=OpportunityStatus(row[15]),
         )
 
     def update_status(
