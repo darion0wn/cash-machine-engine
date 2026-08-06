@@ -1,4 +1,5 @@
 from services.opportunity_feed import OpportunityFeed
+from services.trend_engine import TrendEngine
 
 
 def print_section(title, rows):
@@ -37,6 +38,22 @@ def print_section(title, rows):
         print()
 
 
+
+def print_hot_topics():
+    engine=TrendEngine()
+    topics=engine.top(5)
+    print()
+    print("="*80)
+    print("🔥 HOT TOPICS")
+    print("="*80)
+    print()
+    if not topics:
+        print("No topics.")
+        return
+    for t in topics:
+        print(f"- {t['topic']} ({t['trend_score']:.1f})")
+
+
 def main():
 
     feed = OpportunityFeed()
@@ -63,6 +80,8 @@ def main():
         "❌ SKIP",
         feed.skipped(),
     )
+
+    print_hot_topics()
 
 
 if __name__ == "__main__":

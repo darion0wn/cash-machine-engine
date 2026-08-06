@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from database.trend_repository import TrendRepository
+from services.topic_normalizer import TopicNormalizer
 
 
 class TrendEngine:
@@ -11,6 +12,7 @@ class TrendEngine:
     def __init__(self):
 
         self.repository = TrendRepository()
+        self.normalizer = TopicNormalizer()
 
     @staticmethod
     def _parse_datetime(value):
