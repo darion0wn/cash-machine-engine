@@ -62,6 +62,12 @@
 
 ---
 
+# Topics
+
+{{ topics }}
+
+---
+
 # Opportunity Evaluation
 
 {{ investment_evaluation }}

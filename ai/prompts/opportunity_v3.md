@@ -99,6 +99,14 @@ Instead evaluate:
 - execution speed
 - distribution opportunity
 
+
+When extracting topics:
+
+- return exactly 5 topics;
+- keep them concise;
+- use the strongest market/product signals;
+- prefer recurring market concepts over generic words.
+
 ------------------------------------------------------------
 PROBLEM ANALYSIS
 ------------------------------------------------------------
@@ -280,6 +288,23 @@ Provide:
 - One concrete next action.
 
 ------------------------------------------------------------
+TOPIC EXTRACTION
+------------------------------------------------------------
+
+Return a `topics` array with exactly 5 concise topics that best describe the opportunity.
+
+Rules:
+
+- Use normalized noun phrases, not full sentences.
+- Prefer technologies, products, markets, customer segments, and business models.
+- Avoid generic filler words like: software, app, tool, solution, system, platform.
+- Keep topics short and specific.
+- Make topics unique.
+- If the opportunity is narrow, still return 5 closely related topics.
+- Topics should be useful for trend analysis across the whole market.
+
+------------------------------------------------------------
+------------------------------------------------------------
 JSON SCHEMA
 ------------------------------------------------------------
 
@@ -342,7 +367,15 @@ JSON SCHEMA
 
     "next_action": "...",
 
-    "recommended_next_steps": "..."
+    "recommended_next_steps": "...",
+
+    "topics": [
+        "MCP",
+        "AI Agents",
+        "Browser",
+        "Developer Tools",
+        "Open Source"
+    ]
 }
 
 ------------------------------------------------------------

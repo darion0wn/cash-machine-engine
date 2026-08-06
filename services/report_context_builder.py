@@ -137,6 +137,10 @@ class ReportContextBuilder:
 
             "next_action": analysis.next_action,
 
+            "topics": "\n".join(
+                f"- {topic}" for topic in analysis.topics
+            ) if analysis.topics else "Unknown",
+
             # ------------------------------------------------------------------
             # Lists
             # ------------------------------------------------------------------

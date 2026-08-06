@@ -67,6 +67,8 @@ class AnalysisValidator:
         "next_action": str,
 
         "recommended_next_steps": str,
+
+        "topics": list,
     }
 
     SCORE_FIELDS = {
@@ -168,41 +170,54 @@ class AnalysisValidator:
 
             elif expected_type is list:
 
-                if not isinstance(
-                    value,
-                    list,
-                ):
+                if value is None:
+                    value = []
+                elif isinstance(value, str):
+                    value = [value]
+                elif isinstance(value, tuple):
+                    value = list(value)
+                elif not isinstance(value, list):
+                    value = [str(value)]
 
-                    raise ValueError(
-                        f"Field '{field}' must be a list."
-                    )
+                cleaned = []
+                seen = set()
 
-                value = [
-                    str(item).strip()
-                    for item in value
-                    if str(item).strip()
-                ]
+                for item in value:
+
+                    item = str(item).strip()
+
+                    if not item:
+                        continue
+
+                    key = item.lower()
+
+                    if key in seen:
+                        continue
+
+                    seen.add(key)
+                    cleaned.append(item)
+
+                value = cleaned
+
+                if field == "topics":
+                    value = cleaned[:5]
+                else:
+                    value = cleaned
 
             else:
 
                 value = str(value).strip()
 
                 if not value:
-
                     raise ValueError(
                         f"Field '{field}' cannot be empty."
                     )
 
                 if field == "investment_recommendation":
-
-                    valid_values = {
-                        recommendation.value
-                        for recommendation
-                        in InvestmentRecommendation
-                    }
-
+                    mapping={"BUILD":"BUY","WATCH":"WATCH","SKIP":"PASS","BUY":"BUY","PASS":"PASS"}
+                    value=mapping.get(value.upper(),value)
+                    valid_values={r.value for r in InvestmentRecommendation}
                     if value not in valid_values:
-
                         raise ValueError(
                             f"Invalid investment recommendation: '{value}'."
                         )

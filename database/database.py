@@ -124,6 +124,8 @@ class Database:
 
             recommended_next_steps TEXT NOT NULL,
 
+            topics TEXT NOT NULL DEFAULT '[]',
+
             trend_score INTEGER DEFAULT 0,
 
             ranking_score INTEGER DEFAULT 0,
@@ -230,6 +232,7 @@ class Database:
             "build_verdict": "TEXT",
             "biggest_risk": "TEXT",
             "next_action": "TEXT",
+            "topics": "TEXT NOT NULL DEFAULT '[]'",
         }
 
         for column, definition in analysis_migrations.items():

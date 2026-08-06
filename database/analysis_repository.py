@@ -2,6 +2,7 @@ import json
 
 from database.database import Database
 from models.analysis import Analysis
+from models.investment_recommendation import InvestmentRecommendation
 
 
 class AnalysisRepository:
@@ -78,6 +79,8 @@ class AnalysisRepository:
 
                 next_action,
 
+                topics,
+
                 trend_score,
 
                 ranking_score,
@@ -88,7 +91,7 @@ class AnalysisRepository:
 
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
             """,
             (
@@ -155,6 +158,8 @@ class AnalysisRepository:
 
                 analysis.next_action,
 
+                json.dumps(analysis.topics or []),
+
                 analysis.trend_score,
 
                 analysis.ranking_score,
@@ -198,6 +203,31 @@ class AnalysisRepository:
             data["red_flags"] = json.loads(
                 data["red_flags"]
             )
+
+            topics = data.get("topics") or "[]"
+
+            if isinstance(topics, str):
+
+                try:
+                    topics = json.loads(topics)
+                except Exception:
+                    topics = []
+
+            if not isinstance(topics, list):
+                topics = []
+
+            data["topics"] = [
+                str(item).strip()
+                for item in topics
+                if str(item).strip()
+            ]
+
+            recommendation = data.get("investment_recommendation")
+
+            if isinstance(recommendation, str):
+                data["investment_recommendation"] = (
+                    InvestmentRecommendation(recommendation)
+                )
 
             analyses.append(
                 Analysis(**data)
