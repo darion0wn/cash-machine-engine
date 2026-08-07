@@ -21,6 +21,19 @@ It scans public sources, enriches each opportunity with AI, scores the business 
 5. **Portfolio** — organize opportunities into actionable buckets.
 6. **Reports** — read generated CEO-style briefs.
 
+## Founder playbook
+
+Use the private founder playbook when reviewing opportunities or walking through the workspace yourself.
+
+1. **Dashboard** — see the current state of the workspace.
+2. **Feed** — pick an opportunity worth exploring.
+3. **Opportunity detail** — inspect the full analysis and risks.
+4. **Trends** — confirm whether the market is heating up.
+5. **Portfolio** — see how the ideas are bucketed.
+6. **Reports** — finish with the CEO-style briefing and recommendation.
+
+Open the dedicated playbook at `/demo`.
+
 ## Screenshots
 
 ### Dashboard

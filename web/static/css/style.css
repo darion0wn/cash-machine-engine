@@ -2903,6 +2903,149 @@ body {
   font-weight: 800;
 }
 
+.demo-hero.card {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 52%, #2563eb 100%);
+  box-shadow: var(--cm-card-shadow);
+}
+
+.demo-meta-panel {
+  min-width: min(320px, 100%);
+}
+
+.demo-script-card,
+.demo-side-card {
+  height: 100%;
+}
+
+.demo-step-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.demo-step-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.demo-step-card.demo-step-build {
+  border-left: 4px solid #16a34a;
+}
+
+.demo-step-card.demo-step-watch {
+  border-left: 4px solid #d97706;
+}
+
+.demo-step-card.demo-step-detail {
+  border-left: 4px solid #2563eb;
+}
+
+.demo-step-card.demo-step-trend {
+  border-left: 4px solid #7c3aed;
+}
+
+.demo-step-card.demo-step-portfolio {
+  border-left: 4px solid #0f766e;
+}
+
+.demo-step-card.demo-step-report {
+  border-left: 4px solid #dc2626;
+}
+
+.demo-step-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.demo-step-index {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--cm-accent-soft);
+  color: var(--cm-accent);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.demo-step-kicker {
+  color: var(--cm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.demo-step-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.demo-step-copy {
+  color: var(--cm-text);
+  line-height: 1.6;
+}
+
+.demo-step-actions {
+  margin-top: 14px;
+}
+
+.demo-step-actions .btn {
+  border-radius: 999px;
+}
+
+.demo-checklist {
+  display: grid;
+  gap: 12px;
+}
+
+.demo-focus-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #dbeafe;
+}
+
+.demo-focus-label {
+  color: var(--cm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.demo-focus-title {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.demo-focus-meta {
+  color: var(--cm-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.demo-empty-copy {
+  color: var(--cm-muted);
+  line-height: 1.6;
+  background: #f8fafc;
+  border: 1px dashed #dbe3ef;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
 
 @media (max-width: 767.98px) {
   .app-footer {

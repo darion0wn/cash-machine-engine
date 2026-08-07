@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Private founder playbook</div>
+    <h1 class="page-title mb-1">Founder Playbook</h1>
+    <p class="page-subtitle mb-0">
+      Follow the exact daily founder workflow we use when reviewing opportunities from discovery to decision.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.reports') }}">Open founder report</a>
+  </div>
+</div>
+
+<div class="hero hero-compact demo-hero card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">Founder playbook</div>
+        <h2 class="hero-title mb-2">Dashboard → Feed → Opportunity → Trends → Portfolio → Reports</h2>
+        <p class="hero-text mb-0">
+          Use this guided path when reviewing opportunities for the day or walking through the workspace with a co-founder.
+          The goal is to move from signal to decision in a few minutes.
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel demo-meta-panel">
+        <div class="hero-meta-label">Workflow length</div>
+        <div class="hero-meta-value">6 steps</div>
+        <div class="hero-meta-badges">
+          <span class="badge rounded-pill text-bg-light">Private</span>
+          <span class="badge rounded-pill text-bg-light">Founder only</span>
+          <span class="badge rounded-pill text-bg-light">Decision-ready</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for card in demo_metrics %}
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-{{ card.tone }}">
+      <div class="card-body">
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-hint">{{ card.hint }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="card demo-script-card">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Founder playbook</h3>
+            <div class="section-subtitle muted">Use the same sequence every time you review the workspace</div>
+          </div>
+          <span class="badge rounded-pill text-bg-primary">Internal workflow</span>
+        </div>
+
+        <div class="demo-step-grid">
+          {% for step in demo_steps %}
+          <div class="demo-step-card demo-step-{{ step.tone }}">
+            <div class="demo-step-header">
+              <div class="demo-step-index">{{ step.index }}</div>
+              <div class="demo-step-kicker">{{ step.kicker }}</div>
+            </div>
+
+            <div class="demo-step-title">{{ step.title }}</div>
+            <div class="demo-step-copy">{{ step.description }}</div>
+
+            <div class="demo-step-actions">
+              <a class="btn btn-sm btn-outline-primary" href="{{ step.href }}">
+                {{ step.cta }}
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card mb-4 demo-side-card">
+      <div class="card-body">
+        <div class="section-header d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h3 class="section-title mb-1">Founder checklist</h3>
+            <div class="section-subtitle muted">What to focus on during a review</div>
+          </div>
+        </div>
+
+        <div class="demo-checklist">
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">1</span>
+            <span>Start from the dashboard so the audience sees the current state of the workspace first.</span>
+          </div>
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">2</span>
+            <span>Open the feed and choose one opportunity worth explaining in detail.</span>
+          </div>
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">3</span>
+            <span>Use trends and portfolio to show why the idea matters now and how it should be handled.</span>
+          </div>
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">4</span>
+            <span>Finish with reports so the demo ends in a clear recommendation, not in analysis.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card demo-side-card">
+      <div class="card-body">
+        <div class="section-header d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h3 class="section-title mb-1">Current priority</h3>
+            <div class="section-subtitle muted">What the workspace should drive toward</div>
+          </div>
+        </div>
+
+        {% if sample_opportunity %}
+        <div class="demo-focus-card">
+          <div class="demo-focus-label">Best current opportunity</div>
+          <div class="demo-focus-title">{{ sample_opportunity.title }}</div>
+          <div class="demo-focus-meta">
+            {{ sample_opportunity.source }} · Rank {{ sample_opportunity.ranking_score }} · Cash {{ sample_opportunity.cash_machine_score }}
+          </div>
+          <a class="btn btn-sm btn-primary mt-3" href="{{ sample_opportunity_href }}">Open opportunity</a>
+        </div>
+        {% else %}
+        <div class="demo-empty-copy">
+          No ranked opportunities yet. Run the crawler to populate the founder playbook.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
