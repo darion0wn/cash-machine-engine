@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 
 from flask import Flask, render_template
@@ -20,7 +22,27 @@ APP_DESCRIPTION = (
     "AI Founder Workspace that scans opportunities, scores them, tracks market "
     "momentum, and helps decide what is worth building."
 )
-APP_VERSION = os.getenv("APP_VERSION", "1.0")
+APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
+
+
+def _resolve_git_commit() -> str:
+    override = os.getenv("APP_COMMIT") or os.getenv("GIT_COMMIT")
+    if override:
+        return override.strip()[:12]
+
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except Exception:
+        return "local"
+
+    commit = result.stdout.strip()
+    return commit or "local"
 
 
 def create_app() -> Flask:
@@ -36,13 +58,18 @@ def create_app() -> Flask:
 
     register_routes(app)
 
+    build_date = os.getenv("BUILD_DATE") or date.today().strftime("%d %b %Y")
+    app_commit = _resolve_git_commit()
+
     @app.context_processor
     def inject_globals():
         return {
             "app_name": APP_NAME,
             "app_description": APP_DESCRIPTION,
             "app_version": APP_VERSION,
-            "current_year": 2026,
+            "app_commit": app_commit,
+            "build_date": build_date,
+            "current_year": date.today().year,
         }
 
     @app.errorhandler(404)

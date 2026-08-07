@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Founder workspace</div>
+    <h1 class="page-title mb-1">About Cash Machine Engine</h1>
+    <p class="page-subtitle mb-0">
+      AI Founder Workspace for discovering, ranking and organizing opportunities worth building.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.reports') }}">Open reports</a>
+  </div>
+</div>
+
+<div class="hero hero-compact about-hero card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">AI founder workspace</div>
+        <h2 class="hero-title mb-2">Discover, validate and prioritize opportunities that can become real revenue.</h2>
+        <p class="hero-text mb-0">
+          Cash Machine Engine continuously scans the market, scores opportunities, tracks trends and helps founders focus on the ideas worth building first.
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel about-meta-panel">
+        <div class="hero-meta-label">Release</div>
+        <div class="hero-meta-value">Version {{ app_version }}</div>
+        <div class="about-meta-list">
+          <div><span>Commit</span><strong>{{ app_commit }}</strong></div>
+          <div><span>Build date</span><strong>{{ build_date }}</strong></div>
+          <div><span>Workspace</span><strong>Founder edition</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-blue">
+      <div class="card-body">
+        <div class="metric-label">Mission</div>
+        <div class="metric-value">500€/mo</div>
+        <div class="metric-hint">Help founders spot ideas worth turning into cash-flowing products.</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-green">
+      <div class="card-body">
+        <div class="metric-label">Workflow</div>
+        <div class="metric-value">6 steps</div>
+        <div class="metric-hint">Dashboard → Feed → Detail → Trends → Portfolio → Reports.</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-purple">
+      <div class="card-body">
+        <div class="metric-label">Stack</div>
+        <div class="metric-value">Flask</div>
+        <div class="metric-hint">Python, SQLite, Gemini, Jinja and Bootstrap keep the app lean.</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-orange">
+      <div class="card-body">
+        <div class="metric-label">Release</div>
+        <div class="metric-value">v{{ app_version }}</div>
+        <div class="metric-hint">Current workspace release packaged for founder workflow demos.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="card h-100 about-section-card">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">What it does</h3>
+            <div class="section-subtitle muted">Why the workspace exists</div>
+          </div>
+        </div>
+
+        <div class="about-copy-block">
+          Cash Machine Engine is built to reduce the time between "I found an idea" and "I know whether I should build it".
+          It combines crawling, analysis, scoring, trend detection and portfolio organization into one founder workspace.
+        </div>
+
+        <div class="about-copy-block">
+          The goal is simple: help founders identify small but realistic software opportunities that can reach meaningful monthly revenue without wasting weeks on dead ends.
+        </div>
+
+        <div class="about-checklist">
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">1</span>
+            <span>Find opportunities from multiple public sources.</span>
+          </div>
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">2</span>
+            <span>Score them using structured AI analysis.</span>
+          </div>
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">3</span>
+            <span>Prioritize what deserves attention now.</span>
+          </div>
+          <div class="about-checklist-item">
+            <span class="about-checklist-index">4</span>
+            <span>Track momentum, portfolio buckets and reports.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-4 about-section-card">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Technology</h3>
+            <div class="section-subtitle muted">Lean stack, fast iteration</div>
+          </div>
+        </div>
+
+        <div class="about-stack-grid">
+          <div class="about-stack-item">
+            <span>Frontend</span>
+            <strong>Flask + Jinja + Bootstrap</strong>
+          </div>
+          <div class="about-stack-item">
+            <span>Database</span>
+            <strong>SQLite</strong>
+          </div>
+          <div class="about-stack-item">
+            <span>AI</span>
+            <strong>Gemini</strong>
+          </div>
+          <div class="about-stack-item">
+            <span>Architecture</span>
+            <strong>Services + Repositories</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card about-section-card">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Roadmap</h3>
+            <div class="section-subtitle muted">What comes after the workspace</div>
+          </div>
+        </div>
+
+        <div class="about-roadmap-list">
+          <div class="about-roadmap-item">
+            <div class="about-roadmap-step">Sprint 17</div>
+            <div class="about-roadmap-copy">Founder memory, watchlists and smarter decision support.</div>
+          </div>
+          <div class="about-roadmap-item">
+            <div class="about-roadmap-step">Sprint 18</div>
+            <div class="about-roadmap-copy">Notifications, compare mode and opportunity follow-up.</div>
+          </div>
+          <div class="about-roadmap-item">
+            <div class="about-roadmap-step">Sprint 19</div>
+            <div class="about-roadmap-copy">Automation, exports and recurring founder briefs.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card about-demo-card">
+  <div class="card-body">
+    <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <h3 class="section-title mb-1">Founder workflow</h3>
+        <div class="section-subtitle muted">The path from discovery to revenue</div>
+      </div>
+      <a class="section-link" href="{{ url_for('pages.feed') }}">Open feed</a>
+    </div>
+
+    <div class="about-flow">
+      <div class="about-flow-step">Dashboard</div>
+      <div class="about-flow-arrow">→</div>
+      <div class="about-flow-step">Feed</div>
+      <div class="about-flow-arrow">→</div>
+      <div class="about-flow-step">Opportunity</div>
+      <div class="about-flow-arrow">→</div>
+      <div class="about-flow-step">Trends</div>
+      <div class="about-flow-arrow">→</div>
+      <div class="about-flow-step">Portfolio</div>
+      <div class="about-flow-arrow">→</div>
+      <div class="about-flow-step">Reports</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

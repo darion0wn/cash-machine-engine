@@ -207,6 +207,24 @@
       </div>
 
       {% block content %}{% endblock %}
+
+      <footer class="app-footer" aria-label="Workspace footer">
+        <div class="app-footer-copy">
+          <div class="app-footer-brand">{{ app_name }}</div>
+          <div class="app-footer-meta">
+            Version {{ app_version }} · Commit {{ app_commit }} · Built {{ build_date }}
+          </div>
+        </div>
+
+        <div class="app-footer-links">
+          <a href="{{ url_for('pages.about') }}">About</a>
+          <span aria-hidden="true">·</span>
+          <span>Founder Workspace Edition</span>
+          <span aria-hidden="true">·</span>
+          <span>© {{ current_year }}</span>
+        </div>
+      </footer>
+
     </main>
   </div>
 

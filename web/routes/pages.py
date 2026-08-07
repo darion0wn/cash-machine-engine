@@ -104,6 +104,18 @@ def report_detail(report_id: int):
     return _render_reports(report_id)
 
 
+@pages_bp.route("/about")
+def about():
+    return render_template(
+        "about.html",
+        active_page="about",
+        page_title="About",
+        page_description=(
+            "Mission, workflow, stack and roadmap behind Cash Machine Engine."
+        ),
+    )
+
+
 @pages_bp.route("/settings")
 def settings():
     return _render_placeholder(
