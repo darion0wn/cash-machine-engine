@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>
+    document.documentElement.classList.add("js");
+  </script>
   <meta charset="utf-8">
   <meta
     name="viewport"
@@ -34,7 +37,8 @@
     href="{{ url_for('static', filename='css/style.css') }}"
   >
 </head>
-<body>
+<body class="app-body" data-page="{{ active_page or 'dashboard' }}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
@@ -47,7 +51,7 @@
 
       <div class="sidebar-section">
         <div class="sidebar-section-title">Navigation</div>
-        <nav class="nav flex-column gap-1">
+        <nav class="nav flex-column gap-1" aria-label="Primary navigation">
           <a
             class="nav-link {% if active_page == 'dashboard' %}active{% endif %}"
             href="{{ url_for('dashboard.index') }}"
@@ -96,7 +100,7 @@
       </div>
     </aside>
 
-    <main class="main-content">
+    <main id="main-content" class="main-content">
       {% block content %}{% endblock %}
     </main>
   </div>

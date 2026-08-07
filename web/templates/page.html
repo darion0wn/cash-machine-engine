@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body py-5 text-center">
-    <div class="display-6 mb-3">{{ page_title }}</div>
-    <p class="lead text-muted mb-4">
+<div class="page-placeholder card">
+  <div class="card-body py-5 text-center px-4">
+    <div class="placeholder-badge">Coming soon</div>
+    <div class="placeholder-emoji">✨</div>
+    <div class="dashboard-eyebrow justify-content-center">Founder workspace</div>
+    <h1 class="page-title mb-2">{{ page_title }}</h1>
+    <p class="page-subtitle page-placeholder-copy mx-auto mb-4">
       {{ page_description }}
     </p>
 
-    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">
-      Back to dashboard
-    </a>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+      <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">
+        Back to dashboard
+      </a>
+      <a class="btn btn-outline-secondary" href="{{ url_for('pages.feed') }}">
+        Open feed
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}
