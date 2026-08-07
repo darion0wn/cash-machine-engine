@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 
 from web.services.feed_service import FeedService
+from web.services.portfolio_service import PortfolioService
 from web.services.trends_service import TrendsService
 
 pages_bp = Blueprint("pages", __name__)
@@ -47,10 +48,14 @@ def trends():
 
 @pages_bp.route("/portfolio")
 def portfolio():
-    return _render_placeholder(
-        "Portfolio",
-        "The portfolio view will group opportunities into build now, watch and skip buckets.",
-        "portfolio",
+    service = PortfolioService()
+    portfolio_data = service.get_portfolio_data()
+
+    return render_template(
+        "portfolio.html",
+        active_page="portfolio",
+        page_title="Portfolio",
+        **portfolio_data,
     )
 
 

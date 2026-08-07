@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Founder workspace</div>
+    <h1 class="page-title mb-1">Portfolio</h1>
+    <p class="page-subtitle mb-0">
+      Group opportunities into BUILD, WATCH and SKIP buckets so the next move is obvious.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.feed') }}">Open feed</a>
+  </div>
+</div>
+
+<div class="hero hero-compact portfolio-hero card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-4 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">Portfolio radar</div>
+        <h2 class="hero-title mb-2">
+          Build signal, watchlist and skip buckets in one place.
+        </h2>
+        <p class="hero-text mb-0">
+          A decision workspace to quickly review what deserves attention, what deserves patience and what should stay on the sidelines.
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel portfolio-focus-panel">
+        <div class="hero-meta-label">Current focus</div>
+        {% if portfolio_focus_item %}
+        <div class="hero-meta-value">
+          {{ portfolio_focus_item.title }}
+        </div>
+        <div class="portfolio-focus-meta">
+          {{ portfolio_focus_item.source }} · {{ portfolio_focus_item.primary_topic }}
+        </div>
+        <div class="hero-meta-badges">
+          <span class="badge rounded-pill text-bg-light">{{ portfolio_focus_item.status_badge }}</span>
+          <span class="badge rounded-pill text-bg-light">Rank {{ portfolio_focus_item.ranking_score }}</span>
+          <span class="badge rounded-pill text-bg-light">Cash {{ portfolio_focus_item.cash_machine_score }}</span>
+          <span class="badge rounded-pill text-bg-light">{{ portfolio_focus_item.analysis_created_at }}</span>
+        </div>
+        {% else %}
+        <div class="hero-meta-value">
+          No ranked opportunities yet
+        </div>
+        <div class="portfolio-focus-meta">
+          The shortlist will appear here once the crawler produces analyses.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for card in metrics %}
+  <div class="col-6 col-xl-2">
+    <div class="metric card h-100 metric-{{ card.tone }}">
+      <div class="card-body">
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-hint">{{ card.hint }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-8">
+    <div class="portfolio-section-grid">
+      {% for section in sections %}
+      <div class="card portfolio-section-card portfolio-section-{{ section['tone'] }}">
+        <div class="card-body">
+          <div class="portfolio-section-header">
+            <div>
+              <h3 class="portfolio-section-title mb-1">{{ section["label"] }}</h3>
+              <div class="portfolio-section-description">
+                {{ section["description"] }}
+              </div>
+            </div>
+
+            <span class="portfolio-section-count">
+              {{ section["count"] }}
+            </span>
+          </div>
+
+          {% if section["items"] %}
+          <div class="portfolio-item-list">
+            {% for item in section["items"] %}
+            <div class="portfolio-item">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div class="flex-grow-1">
+                  <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="rank-pill">#{{ item.ranking_score }}</span>
+                    <span class="status-pill status-{{ item.portfolio_status|lower }}">
+                      {{ item.portfolio_status }}
+                    </span>
+                    <span class="topic-pill">{{ item.primary_topic }}</span>
+                  </div>
+
+                  <a
+                    class="portfolio-item-title d-block mt-2"
+                    href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+                  >
+                    {{ item.title }}
+                  </a>
+
+                  <div class="portfolio-item-meta">
+                    {{ item.source }} · Cash {{ item.cash_machine_score }} · Updated {{ item.analysis_created_at }}
+                  </div>
+
+                  <div class="feed-topic-meter mt-2">
+                    <div
+                      class="feed-topic-meter-fill"
+                      data-width="{{ item.ranking_score }}"
+                    ></div>
+                  </div>
+
+                  <div class="portfolio-item-snippet">
+                    {{ item.snippet }}
+                  </div>
+                </div>
+
+                <div class="portfolio-item-actions">
+                  <a
+                    class="btn btn-sm btn-outline-primary"
+                    href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+                  >
+                    Open
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="portfolio-empty">
+            {{ section["empty_message"] }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="portfolio-sidebar-sticky">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="section-header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="section-title mb-1">Portfolio Signals</h3>
+              <div class="section-subtitle muted">Quick stats for the current shortlist</div>
+            </div>
+          </div>
+
+          <div class="pipeline-stack">
+            {% for row in signal_rows %}
+            <div class="pipeline-row">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="section-header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="section-title mb-1">Hot Topics</h3>
+              <div class="section-subtitle muted">Themes carrying the strongest signal</div>
+            </div>
+          </div>
+
+          <div class="topic-list">
+            {% for topic in hot_topics %}
+            <div class="topic-item">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="flex-grow-1">
+                  <div class="topic-title">{{ topic.topic }}</div>
+                  <div class="topic-subtitle">
+                    {{ topic.frequency }} mentions · {{ topic.source_diversity }} sources · Latest {{ topic.latest_seen }}
+                  </div>
+                  <div class="feed-topic-meter">
+                    <div
+                      class="feed-topic-meter-fill"
+                      data-width="{{ topic.trend_score }}"
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="topic-score">
+                  {{ topic.trend_score }}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+
+            {% if hot_topics|length == 0 %}
+            <div class="text-muted">No topics detected yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="section-header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="section-title mb-1">Latest Analyses</h3>
+              <div class="section-subtitle muted">Newest AI evaluations in the workspace</div>
+            </div>
+          </div>
+
+          <div class="portfolio-recent-list">
+            {% for item in recent_analyses %}
+            <a
+              class="portfolio-recent-item"
+              href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+            >
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="flex-grow-1">
+                  <div class="portfolio-recent-title">
+                    {{ item.title }}
+                  </div>
+                  <div class="portfolio-recent-meta">
+                    {{ item.source }} · {{ item.topic }} · {{ item.analysis_created_at }}
+                  </div>
+                </div>
+
+                <span class="status-pill status-{{ item.portfolio_status|lower }}">
+                  {{ item.portfolio_status }}
+                </span>
+              </div>
+            </a>
+            {% endfor %}
+
+            {% if recent_analyses|length == 0 %}
+            <div class="text-muted">No recent analyses yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
