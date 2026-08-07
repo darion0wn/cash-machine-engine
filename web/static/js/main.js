@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+  const sidebarOverlay = document.querySelector("[data-sidebar-overlay]");
   const body = document.body;
   const topicMeters = Array.from(
     document.querySelectorAll(".feed-topic-meter-fill[data-width]")
@@ -7,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const revealTargets = Array.from(
     document.querySelectorAll(
       [
+        ".main-content .mobile-topbar",
         ".main-content .dashboard-topbar",
         ".main-content .hero",
         ".main-content .metric",
@@ -28,6 +32,47 @@ document.addEventListener("DOMContentLoaded", () => {
   revealTargets.forEach((element, index) => {
     element.classList.add("reveal-item");
     element.style.setProperty("--reveal-delay", `${Math.min(index * 35, 420)}ms`);
+  });
+
+  const setSidebarOpen = (isOpen) => {
+    if (!sidebar || !sidebarToggle) {
+      return;
+    }
+
+    body.classList.toggle("sidebar-open", isOpen);
+    sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+
+    if (sidebarOverlay) {
+      sidebarOverlay.tabIndex = isOpen ? 0 : -1;
+    }
+  };
+
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener("click", () => {
+      setSidebarOpen(!body.classList.contains("sidebar-open"));
+    });
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener("click", () => {
+      setSidebarOpen(false);
+    });
+  }
+
+  if (sidebar) {
+    sidebar.querySelectorAll("a.nav-link").forEach((link) => {
+      link.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 991.98px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+  }
+
+  window.addEventListener("resize", () => {
+    if (window.matchMedia("(min-width: 992px)").matches) {
+      setSidebarOpen(false);
+    }
   });
 
   requestAnimationFrame(() => {
@@ -157,5 +202,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("pageshow", () => {
     body.classList.remove("is-exiting");
     body.classList.add("is-loaded");
+    if (window.matchMedia("(min-width: 992px)").matches) {
+      setSidebarOpen(false);
+    }
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setSidebarOpen(false);
+    }
   });
 });

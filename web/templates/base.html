@@ -40,7 +40,15 @@
 <body class="app-body" data-page="{{ active_page or 'dashboard' }}">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="app-shell">
-    <aside class="sidebar">
+    <button
+      class="sidebar-overlay"
+      type="button"
+      data-sidebar-overlay
+      aria-label="Close navigation"
+      tabindex="-1"
+    ></button>
+
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
       <div class="brand">
         <div class="brand-mark">CM</div>
         <div>
@@ -101,6 +109,29 @@
     </aside>
 
     <main id="main-content" class="main-content">
+      <div class="mobile-topbar">
+        <div class="mobile-topbar-brand">
+          <div class="brand-mark">CM</div>
+          <div class="mobile-topbar-copy">
+            <div class="brand-title">{{ app_name }}</div>
+            <div class="mobile-topbar-subtitle">{{ page_title or "Founder Dashboard" }}</div>
+          </div>
+        </div>
+
+        <button
+          class="sidebar-toggle"
+          type="button"
+          data-sidebar-toggle
+          aria-controls="sidebar"
+          aria-expanded="false"
+          aria-label="Open navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
       {% block content %}{% endblock %}
     </main>
   </div>
