@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 
 from web.services.feed_service import FeedService
 from web.services.portfolio_service import PortfolioService
+from web.services.reports_service import ReportsService
 from web.services.trends_service import TrendsService
 
 pages_bp = Blueprint("pages", __name__)
@@ -17,6 +18,20 @@ def _render_placeholder(
         page_title=page_title,
         page_description=page_description,
         active_page=active_page,
+    )
+
+
+def _render_reports(report_id: int | None = None):
+    service = ReportsService()
+    reports_data = service.get_reports_data(
+        selected_report_id=report_id,
+    )
+
+    return render_template(
+        "reports.html",
+        active_page="reports",
+        page_title="Reports",
+        **reports_data,
     )
 
 
@@ -61,11 +76,17 @@ def portfolio():
 
 @pages_bp.route("/reports")
 def reports():
-    return _render_placeholder(
-        "Reports",
-        "The reports viewer will expose generated Markdown reports directly in the browser.",
-        "reports",
+    selected_report_id = request.args.get(
+        "report",
+        type=int,
     )
+
+    return _render_reports(selected_report_id)
+
+
+@pages_bp.route("/reports/<int:report_id>")
+def report_detail(report_id: int):
+    return _render_reports(report_id)
 
 
 @pages_bp.route("/settings")

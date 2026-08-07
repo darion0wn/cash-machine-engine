@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Founder workspace</div>
+    <h1 class="page-title mb-1">Reports</h1>
+    <p class="page-subtitle mb-0">
+      Read generated reports like a CEO briefing and jump straight to the opportunity or source.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.feed') }}">Open feed</a>
+  </div>
+</div>
+
+<div class="hero hero-compact reports-hero card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-4 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">CEO briefing</div>
+        <h2 class="hero-title mb-2">Turn generated analysis into an actionable weekly review.</h2>
+        <p class="hero-text mb-0">
+          {{ executive_brief }}
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel reports-focus-panel">
+        <div class="hero-meta-label">Selected report</div>
+        {% if selected_report %}
+        <div class="hero-meta-value">{{ selected_report.title }}</div>
+        <div class="reports-focus-meta">
+          {{ selected_report.source }} · #{{ selected_report.opportunity_id }} · {{ selected_report.generated_at }}
+        </div>
+        <div class="hero-meta-badges">
+          <span class="badge rounded-pill text-bg-light">{{ selected_report.status_badge }}</span>
+          <span class="badge rounded-pill text-bg-light">{{ selected_report.recommendation }}</span>
+          <span class="badge rounded-pill text-bg-light">Cash {{ selected_report.cash_machine_score }}</span>
+          <span class="badge rounded-pill text-bg-light">Confidence {{ selected_report.confidence }}%</span>
+        </div>
+        {% else %}
+        <div class="hero-meta-value">No reports available</div>
+        <div class="reports-focus-meta">
+          Run the crawler to start generating markdown reports.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for card in metrics %}
+  <div class="col-6 col-xl-2">
+    <div class="metric card h-100 metric-{{ card.tone }}">
+      <div class="card-body">
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-hint">{{ card.hint }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-4">
+    <div class="card h-100 mb-4 reports-sidebar-sticky">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Reports archive</h3>
+            <div class="section-subtitle muted">Recent generated markdown reports</div>
+          </div>
+          <span class="badge rounded-pill text-bg-primary">{{ report_count }} total</span>
+        </div>
+
+        <div class="report-archive-list">
+          {% for report in reports %}
+          <a
+            class="report-archive-item {% if selected_report and report.id == selected_report.id %}active{% endif %}"
+            href="{{ url_for('pages.report_detail', report_id=report.id) }}"
+          >
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+              <div class="flex-grow-1">
+                <div class="report-archive-title">#{{ report.id }} · {{ report.title }}</div>
+                <div class="report-archive-meta">
+                  {{ report.source }} · Cash {{ report.cash_machine_score }} · {{ report.generated_at }}
+                </div>
+              </div>
+              <div class="d-flex flex-column align-items-end gap-2">
+                <span class="status-pill status-{{ report.tone }}">{{ report.verdict }}</span>
+                <span class="report-confidence">{{ report.confidence }}%</span>
+              </div>
+            </div>
+
+            <div class="report-archive-snippet">
+              {{ report.reasoning_excerpt or report.next_action or "No excerpt available." }}
+            </div>
+          </a>
+          {% endfor %}
+
+          {% if reports|length == 0 %}
+          <div class="report-empty">No reports generated yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="section-title mb-1">Source breakdown</h3>
+            <div class="section-subtitle muted">Where the archive comes from</div>
+          </div>
+        </div>
+
+        <div class="reports-source-list">
+          {% for source in source_breakdown %}
+          <div class="reports-source-item">
+            <span>{{ source.source }}</span>
+            <strong>{{ source.count }}</strong>
+          </div>
+          {% endfor %}
+
+          {% if source_breakdown|length == 0 %}
+          <div class="report-empty">No source data yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-8">
+    <div class="card report-preview-card">
+      <div class="card-body">
+        {% if selected_report %}
+          <div class="report-preview-header">
+            <div>
+              <h2 class="section-title mb-1">{{ selected_report.title }}</h2>
+              <div class="section-subtitle muted">
+                {{ selected_report.source }} · Generated {{ selected_report.generated_at }}
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-2">
+              <span class="badge rounded-pill text-bg-success">{{ selected_report.verdict }}</span>
+              <span class="badge rounded-pill text-bg-light">{{ selected_report.recommendation }}</span>
+              <span class="badge rounded-pill text-bg-dark">Cash {{ selected_report.cash_machine_score }}</span>
+              <span class="badge rounded-pill text-bg-secondary">Confidence {{ selected_report.confidence }}%</span>
+              {% if selected_report.opportunity_id %}
+              <a
+                class="btn btn-outline-secondary btn-sm"
+                href="{{ url_for('dashboard.detail', opportunity_id=selected_report.opportunity_id) }}"
+              >
+                Open opportunity
+              </a>
+              {% endif %}
+              {% if selected_report.url %}
+              <a
+                class="btn btn-primary btn-sm"
+                href="{{ selected_report.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open source
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="report-snapshot-grid mb-4">
+            <div class="report-snapshot-card">
+              <div class="report-snapshot-label">Biggest risk</div>
+              <div class="report-snapshot-value">
+                {{ selected_report.biggest_risk or "Not captured" }}
+              </div>
+            </div>
+
+            <div class="report-snapshot-card">
+              <div class="report-snapshot-label">Next action</div>
+              <div class="report-snapshot-value">
+                {{ selected_report.next_action or "Not captured" }}
+              </div>
+            </div>
+          </div>
+
+          <div class="report-markdown">
+            {{ selected_report.html | safe }}
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <h2 class="section-title">No reports available</h2>
+            <p class="text-muted mb-0">
+              Run the crawler to start generating report markdown files.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
