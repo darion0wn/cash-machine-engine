@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
   const sidebarOverlay = document.querySelector("[data-sidebar-overlay]");
   const body = document.body;
+  const loadingOverlay = document.querySelector("[data-loading-overlay]");
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
   const topicMeters = Array.from(
     document.querySelectorAll(".feed-topic-meter-fill[data-width]")
   );
@@ -51,6 +55,71 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const showLoadingOverlay = () => {
+    body.classList.add("is-loading");
+    if (loadingOverlay) {
+      loadingOverlay.hidden = false;
+    }
+  };
+
+  const hideLoadingOverlay = () => {
+    body.classList.remove("is-loading");
+    if (loadingOverlay) {
+      loadingOverlay.hidden = true;
+    }
+  };
+
+  const shouldHandleLoadingNavigation = (link, event) => {
+    if (!link) {
+      return false;
+    }
+
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return false;
+    }
+
+    if (event.button !== 0) {
+      return false;
+    }
+
+    if (link.hasAttribute("download")) {
+      return false;
+    }
+
+    if (link.target && link.target !== "_self") {
+      return false;
+    }
+
+    const href = link.getAttribute("href");
+
+    if (
+      !href ||
+      href.startsWith("#") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("tel:") ||
+      href.startsWith("javascript:")
+    ) {
+      return false;
+    }
+
+    let url;
+
+    try {
+      url = new URL(link.href, window.location.origin);
+    } catch {
+      return false;
+    }
+
+    if (url.origin !== window.location.origin) {
+      return false;
+    }
+
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const target = `${url.pathname}${url.search}${url.hash}`;
+
+    return current !== target;
+  };
+
   if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener("click", () => {
       setSidebarOpen(!body.classList.contains("sidebar-open"));
@@ -78,6 +147,8 @@ document.addEventListener("DOMContentLoaded", () => {
       setSidebarOpen(false);
     }
   });
+
+  hideLoadingOverlay();
 
   requestAnimationFrame(() => {
     body.classList.add("is-loaded");
@@ -160,65 +231,29 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSearchState();
   }
 
-  const shouldAnimate = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+  const internalLinks = Array.from(document.querySelectorAll('a[href]'));
 
-  if (shouldAnimate) {
-    const internalLinks = Array.from(document.querySelectorAll('a[href]'));
-
-    internalLinks.forEach((link) => {
-      const href = link.getAttribute("href");
-
-      if (
-        !href ||
-        href.startsWith("#") ||
-        href.startsWith("mailto:") ||
-        href.startsWith("tel:") ||
-        href.startsWith("javascript:")
-      ) {
+  internalLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (!shouldHandleLoadingNavigation(link, event)) {
         return;
       }
 
-      if (link.hasAttribute("download") || (link.target && link.target !== "_self")) {
-        return;
-      }
+      event.preventDefault();
+      body.classList.add("is-exiting");
+      showLoadingOverlay();
 
-      let url;
-
-      try {
-        url = new URL(link.href, window.location.origin);
-      } catch {
-        return;
-      }
-
-      if (url.origin !== window.location.origin) {
-        return;
-      }
-
-      link.addEventListener("click", (event) => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-          return;
-        }
-
-        const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-        const target = `${url.pathname}${url.search}${url.hash}`;
-
-        if (current === target) {
-          return;
-        }
-
-        event.preventDefault();
-        body.classList.add("is-exiting");
-
-        window.setTimeout(() => {
-          window.location.assign(link.href);
-        }, 110);
-      });
+      window.setTimeout(() => {
+        window.location.assign(link.href);
+      }, prefersReducedMotion ? 0 : 140);
     });
-  }
+  });
 
   window.addEventListener("pageshow", () => {
     body.classList.remove("is-exiting");
+    hideLoadingOverlay();
     body.classList.add("is-loaded");
+
     if (window.matchMedia("(min-width: 992px)").matches) {
       setSidebarOpen(false);
     }

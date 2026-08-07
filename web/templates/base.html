@@ -39,6 +39,22 @@
 </head>
 <body class="app-body" data-page="{{ active_page or 'dashboard' }}">
   <a class="skip-link" href="#main-content">Skip to content</a>
+  <div
+    class="loading-overlay"
+    data-loading-overlay
+    aria-hidden="true"
+    hidden
+  >
+    <div class="loading-panel" role="status" aria-live="polite">
+      <div class="loading-panel-mark">CM</div>
+      <div class="loading-panel-copy">
+        <div class="loading-panel-title">{{ app_name }}</div>
+        <div class="loading-panel-subtitle">Loading workspace...</div>
+      </div>
+      <div class="loading-spinner" aria-hidden="true"></div>
+    </div>
+  </div>
+
   <div class="app-shell">
     <button
       class="sidebar-overlay"
