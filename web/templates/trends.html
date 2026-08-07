@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Market radar</div>
+    <h1 class="page-title mb-1">Trend Intelligence</h1>
+    <p class="page-subtitle mb-0">
+      Track the topics, sources and signals that are shaping the market right now.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.feed') }}">Open feed</a>
+  </div>
+</div>
+
+<div class="hero hero-compact trend-hero card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-4 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">Trend radar</div>
+        <h2 class="hero-title mb-2">
+          Follow the market themes that keep showing up across the crawler.
+        </h2>
+        <p class="hero-text mb-0">
+          Normalized topics, source diversity and momentum bands reveal what is gaining traction now.
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel">
+        <div class="hero-meta-label">Top topic</div>
+        <div class="hero-meta-value">
+          {% if trend_focus %}
+            {{ trend_focus.topic }}
+          {% else %}
+            No signals yet
+          {% endif %}
+        </div>
+
+        <div class="hero-meta-badges">
+          {% if trend_focus %}
+          <span class="badge rounded-pill text-bg-light">Score: {{ trend_focus.trend_score }}</span>
+          <span class="badge rounded-pill text-bg-light">Mentions: {{ trend_focus.frequency }}</span>
+          <span class="badge rounded-pill text-bg-light">Sources: {{ trend_focus.source_diversity }}</span>
+          {% else %}
+          <span class="badge rounded-pill text-bg-light">Waiting for signals</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for card in trend_metrics %}
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-{{ card.tone }}">
+      <div class="card-body">
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-hint">{{ card.hint }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Hot Topics</h3>
+            <div class="section-subtitle muted">Normalized market themes ranked by momentum</div>
+          </div>
+          <span class="badge rounded-pill text-bg-primary">Top {{ trend_cards|length }}</span>
+        </div>
+
+        <div class="topic-list">
+          {% for trend in trend_cards %}
+          <div class="topic-item">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div class="flex-grow-1">
+                <div class="topic-title">{{ trend.topic }}</div>
+                <div class="topic-subtitle">
+                  {{ trend.frequency }} mentions · {{ trend.source_diversity }} sources · Latest {{ trend.latest_seen }}
+                </div>
+                <div class="feed-topic-meter">
+                  <div
+                    class="feed-topic-meter-fill"
+                    data-width="{{ trend.trend_score }}"
+                  ></div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  <span class="trend-band-pill trend-pill-{{ trend.band_tone }}">
+                    {{ trend.band_label }}
+                  </span>
+                </div>
+              </div>
+              <div class="topic-score">
+                {{ trend.trend_score }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+          {% if trend_cards|length == 0 %}
+          <div class="text-muted">No topics detected yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Momentum Bands</h3>
+            <div class="section-subtitle muted">Where the market is accelerating and where it is cooling down</div>
+          </div>
+        </div>
+
+        <div class="trend-band-grid">
+          {% for band in trend_bands %}
+          <div class="trend-band-card trend-band-{{ band["key"] }}">
+            <div class="trend-band-header">
+              <div>
+                <div class="trend-band-title">
+                  {{ band["icon"] }} {{ band["label"] }}
+                </div>
+                <div class="trend-band-description">
+                  {{ band["description"] }}
+                </div>
+              </div>
+
+              <span class="trend-band-count">
+                {{ band["count"] }}
+              </span>
+            </div>
+
+            {% if band["items"]|length > 0 %}
+            <div class="trend-band-list">
+              {% for item in band["items"] %}
+              <div class="trend-band-item">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                  <div class="flex-grow-1">
+                    <div class="trend-band-item-title">
+                      {{ item.topic }}
+                    </div>
+                    <div class="trend-band-item-meta">
+                      {{ item.frequency }} mentions · {{ item.source_diversity }} sources · Latest {{ item.latest_seen }}
+                    </div>
+                    <div class="feed-topic-meter mt-2">
+                      <div
+                        class="feed-topic-meter-fill"
+                        data-width="{{ item.meter_width }}"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div class="trend-band-score">
+                    {{ item.trend_score }}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="trend-band-empty">
+              No topics in this band yet.
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="trend-sidebar-sticky">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="section-header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="section-title mb-1">Market Signals</h3>
+              <div class="section-subtitle muted">How the bands are distributed</div>
+            </div>
+          </div>
+
+          <div class="pipeline-stack trend-signal-list">
+            {% for row in signal_rows %}
+            <div class="pipeline-row">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="section-header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="section-title mb-1">Related Opportunities</h3>
+              <div class="section-subtitle muted">Best ranked items linked to current signals</div>
+            </div>
+          </div>
+
+          <div class="trend-opportunity-list">
+            {% for item in top_opportunities %}
+            <a
+              class="trend-opportunity-item"
+              href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+            >
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="flex-grow-1">
+                  <div class="trend-opportunity-title">
+                    #{{ item.ranking_score }} · {{ item.title }}
+                  </div>
+                  <div class="trend-opportunity-meta">
+                    {{ item.source }} · {{ item.primary_topic }}
+                  </div>
+                </div>
+
+                <span class="status-pill status-{{ item.portfolio_status|lower }}">
+                  {{ item.portfolio_status }}
+                </span>
+              </div>
+            </a>
+            {% endfor %}
+
+            {% if top_opportunities|length == 0 %}
+            <div class="text-muted">No opportunities ranked yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="section-header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="section-title mb-1">Latest Analyses</h3>
+              <div class="section-subtitle muted">Newest AI evaluations in the workspace</div>
+            </div>
+          </div>
+
+          <div class="trend-opportunity-list">
+            {% for item in recent_analyses %}
+            <div class="trend-opportunity-item">
+              <div class="trend-opportunity-title">
+                {{ item.title }}
+              </div>
+              <div class="trend-opportunity-meta">
+                {{ item.source }} · {{ item.topic }} · {{ item.analysis_created_at }}
+              </div>
+            </div>
+            {% endfor %}
+
+            {% if recent_analyses|length == 0 %}
+            <div class="text-muted">No analyses yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

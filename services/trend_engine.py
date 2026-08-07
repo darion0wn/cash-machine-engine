@@ -57,6 +57,10 @@ class TrendEngine:
         # Fresh topics get more credit, decaying over ~30 days.
         return round(max(0.0, 30 - min(days_ago, 30)) / 3, 1)
 
+    def _normalize_topics(self, topics):
+
+        return self.normalizer.normalize_many(topics or [])
+
     def trends(self):
 
         documents = self.repository.all_documents()
@@ -74,34 +78,11 @@ class TrendEngine:
 
         for document in documents:
 
-            topics = document.get("topics") or []
+            topics = self._normalize_topics(
+                document.get("topics") or []
+            )
 
             if not topics:
-                continue
-
-            unique_topics = []
-
-            seen = set()
-
-            for topic in topics:
-
-                if not topic:
-                    continue
-
-                normalized = str(topic).strip()
-
-                if not normalized:
-                    continue
-
-                key = normalized.lower()
-
-                if key in seen:
-                    continue
-
-                seen.add(key)
-                unique_topics.append(normalized)
-
-            if not unique_topics:
                 continue
 
             ranking_score = float(document.get("ranking_score") or 0)
@@ -109,7 +90,7 @@ class TrendEngine:
             source = document.get("source") or ""
             created_at = self._parse_datetime(document.get("created_at"))
 
-            for topic in unique_topics:
+            for topic in topics:
 
                 key = topic.lower()
                 stats = trends_by_topic[key]

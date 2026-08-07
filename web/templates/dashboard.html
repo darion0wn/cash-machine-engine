@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Cash Machine Engine</div>
+    <h1 class="page-title mb-1">{{ summary.greeting }}</h1>
+    <p class="page-subtitle mb-0">
+      Spot the best opportunities in under 30 seconds.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Refresh</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.trends') }}">Open Trends</a>
+  </div>
+</div>
+
+<div class="hero hero-compact card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">Founder dashboard</div>
+        <h2 class="hero-title mb-2">Build signal, watchlist and market trends in one place.</h2>
+        <p class="hero-text mb-0">
+          The fastest way to spot what to build, what to watch and what to skip.
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel">
+        <div class="hero-meta-label">Last update</div>
+        <div class="hero-meta-value">{{ summary.latest_analysis_at }}</div>
+
+        <div class="hero-meta-badges">
+          <span class="badge rounded-pill text-bg-light">Pending: {{ summary.pending_count }}</span>
+          <span class="badge rounded-pill text-bg-light">Processing: {{ summary.processing_count }}</span>
+          <span class="badge rounded-pill text-bg-light">Done: {{ summary.done_count }}</span>
+          <span class="badge rounded-pill text-bg-light">Failed: {{ summary.failed_count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card dashboard-search-card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+      <div class="flex-grow-1">
+        <label class="dashboard-search-label" for="dashboard-search">Quick search</label>
+        <input
+          id="dashboard-search"
+          type="search"
+          class="form-control form-control-lg dashboard-search-input"
+          placeholder="Search titles, topics, sources or verdicts..."
+          data-dashboard-search
+        >
+        <div class="form-text mt-2">
+          Filters the opportunities and analyses below.
+        </div>
+      </div>
+
+      <div class="dashboard-search-stats">
+        <div class="search-stat">
+          <span>Visible rows</span>
+          <strong data-dashboard-search-count>{{ top_opportunities|length + recent_analyses|length }}</strong>
+        </div>
+        <div class="search-stat">
+          <span>Topics</span>
+          <strong>{{ summary.topics_count }}</strong>
+        </div>
+        <div class="search-stat">
+          <span>Sources</span>
+          <strong>{{ summary.source_count }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for card in summary_cards %}
+  <div class="col-6 col-xl-3">
+    <div class="metric card h-100 metric-{{ card.tone }}">
+      <div class="card-body">
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-hint">{{ card.hint }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Top Opportunities</h3>
+            <div class="section-subtitle muted">Sorted by ranking score</div>
+          </div>
+          <a class="section-link" href="{{ url_for('pages.portfolio') }}">View portfolio</a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0 dashboard-searchable-table">
+            <thead>
+              <tr>
+                <th style="width: 72px;">Rank</th>
+                <th>Title</th>
+                <th style="width: 120px;">Source</th>
+                <th style="width: 180px;">Topic</th>
+                <th style="width: 90px;">Cash</th>
+                <th style="width: 96px;">Status</th>
+              </tr>
+            </thead>
+            <tbody data-dashboard-table="top">
+              {% for item in top_opportunities %}
+              <tr
+                data-dashboard-row
+                data-search="{{ item.title }} {{ item.source }} {{ item.primary_topic }} {{ item.build_verdict }} {{ item.portfolio_status }} {{ item.cash_machine_score }} {{ item.ranking_score }}"
+              >
+                <td>
+                  <span class="rank-pill">#{{ item.ranking_score }}</span>
+                </td>
+                <td>
+                  <a
+                    class="opportunity-link"
+                    href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+                  >
+                    {{ item.title }}
+                  </a>
+                  <div class="small text-muted">
+                    {{ item.build_verdict }}
+                  </div>
+                </td>
+                <td class="text-muted">{{ item.source }}</td>
+                <td>
+                  <span class="topic-pill">{{ item.primary_topic }}</span>
+                </td>
+                <td class="fw-semibold">{{ item.cash_machine_score }}</td>
+                <td>
+                  <span class="status-pill status-{{ item.portfolio_status|lower }}">
+                    {{ item.portfolio_status }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+
+              <tr class="dashboard-filter-empty d-none" data-dashboard-filter-empty="top">
+                <td colspan="6" class="text-center text-muted py-5">
+                  No top opportunities match your search.
+                </td>
+              </tr>
+
+              {% if top_opportunities|length == 0 %}
+              <tr data-dashboard-default-empty="top">
+                <td colspan="6" class="text-center text-muted py-5">
+                  No ranked opportunities yet.
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100 mb-4">
+      <div class="card-body">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="section-title mb-1">Hot Topics</h3>
+            <div class="section-subtitle muted">Trend intelligence</div>
+          </div>
+        </div>
+
+        <div class="topic-list">
+          {% for topic in hot_topics %}
+          <div class="topic-item">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div class="flex-grow-1">
+                <div class="topic-title">{{ topic.topic }}</div>
+                <div class="topic-subtitle">
+                  {{ topic.frequency }} mentions · {{ topic.source_diversity }} sources · Latest {{ topic.latest_seen }}
+                </div>
+              </div>
+              <div class="topic-score">
+                {{ topic.trend_score }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+          {% if hot_topics|length == 0 %}
+          <div class="text-muted">No topics detected yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+          <h3 class="section-title mb-0">Pipeline Health</h3>
+        </div>
+
+        <div class="pipeline-stack">
+          <div class="pipeline-row">
+            <span>Pending</span>
+            <strong>{{ summary.pending_count }}</strong>
+          </div>
+          <div class="pipeline-row">
+            <span>Processing</span>
+            <strong>{{ summary.processing_count }}</strong>
+          </div>
+          <div class="pipeline-row">
+            <span>Done</span>
+            <strong>{{ summary.done_count }}</strong>
+          </div>
+          <div class="pipeline-row">
+            <span>Failed</span>
+            <strong>{{ summary.failed_count }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h3 class="section-title mb-1">Latest Analyses</h3>
+            <div class="section-subtitle muted">Newest AI evaluations in the workspace</div>
+          </div>
+          <a class="section-link" href="{{ url_for('pages.reports') }}">Open reports</a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0 dashboard-searchable-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th style="width: 120px;">Rank</th>
+                <th style="width: 110px;">Cash</th>
+                <th style="width: 110px;">Status</th>
+                <th style="width: 180px;">Topic</th>
+                <th style="width: 180px;">Created</th>
+              </tr>
+            </thead>
+            <tbody data-dashboard-table="recent">
+              {% for item in recent_analyses %}
+              <tr
+                data-dashboard-row
+                data-search="{{ item.title }} {{ item.source }} {{ item.topic }} {{ item.portfolio_status }} {{ item.cash_machine_score }} {{ item.ranking_score }} {{ item.analysis_created_at }}"
+              >
+                <td>
+                  <a
+                    class="opportunity-link"
+                    href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+                  >
+                    {{ item.title }}
+                  </a>
+                  <div class="small text-muted">{{ item.source }}</div>
+                </td>
+                <td><span class="rank-pill">#{{ item.ranking_score }}</span></td>
+                <td class="fw-semibold">{{ item.cash_machine_score }}</td>
+                <td>
+                  <span class="status-pill status-{{ item.portfolio_status|lower }}">
+                    {{ item.portfolio_status }}
+                  </span>
+                </td>
+                <td><span class="topic-pill">{{ item.topic }}</span></td>
+                <td class="text-muted">{{ item.analysis_created_at }}</td>
+              </tr>
+              {% endfor %}
+
+              <tr class="dashboard-filter-empty d-none" data-dashboard-filter-empty="recent">
+                <td colspan="6" class="text-center text-muted py-5">
+                  No analyses match your search.
+                </td>
+              </tr>
+
+              {% if recent_analyses|length == 0 %}
+              <tr data-dashboard-default-empty="recent">
+                <td colspan="6" class="text-center text-muted py-5">
+                  No analyses available yet.
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-2">{{ detail.opportunity.title }}</h1>
+    <p class="page-subtitle mb-0">
+      {{ detail.opportunity.source }}
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    {% if detail.opportunity.url %}
+    <a
+      class="btn btn-primary"
+      href="{{ detail.opportunity.url }}"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Open source
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="section-title mb-3">Opportunity</h2>
+
+        <div class="detail-stack">
+          <div class="detail-row">
+            <span>Source</span>
+            <strong>{{ detail.opportunity.source }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Status</span>
+            <strong>{{ detail.opportunity.status }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Topic</span>
+            <strong>{{ detail.opportunity.topic_label }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Stars</span>
+            <strong>{{ detail.opportunity.stars }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Forks</span>
+            <strong>{{ detail.opportunity.forks }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Watchers</span>
+            <strong>{{ detail.opportunity.watchers }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Open issues</span>
+            <strong>{{ detail.opportunity.open_issues }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Created</span>
+            <strong>{{ detail.opportunity.created_at }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Updated</span>
+            <strong>{{ detail.opportunity.updated_at }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-body">
+        {% if detail.analysis %}
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+            <div>
+              <h2 class="section-title mb-1">Analysis</h2>
+              <div class="small text-muted">
+                {{ detail.analysis.model }} · Prompt {{ detail.analysis.prompt_version }}
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge rounded-pill text-bg-success">
+                {{ detail.analysis.build_verdict }}
+              </span>
+              <span class="badge rounded-pill text-bg-warning">
+                {{ detail.analysis.portfolio_status }}
+              </span>
+              <span class="badge rounded-pill text-bg-dark">
+                Rank {{ detail.analysis.ranking_score }}
+              </span>
+              <span class="badge rounded-pill text-bg-secondary">
+                Cash {{ detail.analysis.cash_machine_score }}
+              </span>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            {% for score in detail.analysis.score_breakdown %}
+            <div class="col-6 col-xl-3">
+              <div class="score-card">
+                <div class="score-label">{{ score.label }}</div>
+                <div class="score-value">{{ score.value }}/10</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Problem</h3>
+            <p>{{ detail.analysis.problem }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Customer</h3>
+            <p>{{ detail.analysis.customer }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Ideal Customer</h3>
+            <p>{{ detail.analysis.ideal_customer }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Market</h3>
+            <p class="mb-1"><strong>Category:</strong> {{ detail.analysis.category }}</p>
+            <p class="mb-1"><strong>Market Size:</strong> {{ detail.analysis.market_size }}</p>
+            <p class="mb-1"><strong>Market Maturity:</strong> {{ detail.analysis.market_maturity }}</p>
+            <p class="mb-0"><strong>Competition:</strong> {{ detail.analysis.competition }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Business</h3>
+            <p class="mb-1"><strong>Business model:</strong> {{ detail.analysis.business_model }}</p>
+            <p class="mb-1"><strong>Pricing strategy:</strong> {{ detail.analysis.pricing_strategy }}</p>
+            <p class="mb-1"><strong>Competitive advantage:</strong> {{ detail.analysis.competitive_advantage }}</p>
+            <p class="mb-0"><strong>MVP:</strong> {{ detail.analysis.mvp_description }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Topics</h3>
+            <div class="d-flex flex-wrap gap-2">
+              {% for topic in detail.analysis.topics %}
+              <span class="topic-pill">{{ topic }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="section-subtitle">Reasoning</h3>
+            <p>{{ detail.analysis.reasoning }}</p>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h3 class="section-subtitle">Key Evidence</h3>
+              <ul class="list-group list-group-flush">
+                {% for item in detail.analysis.key_evidence %}
+                <li class="list-group-item px-0">{{ item }}</li>
+                {% endfor %}
+                {% if detail.analysis.key_evidence|length == 0 %}
+                <li class="list-group-item px-0 text-muted">No evidence captured.</li>
+                {% endif %}
+              </ul>
+            </div>
+
+            <div class="col-md-6">
+              <h3 class="section-subtitle">Red Flags</h3>
+              <ul class="list-group list-group-flush">
+                {% for item in detail.analysis.red_flags %}
+                <li class="list-group-item px-0">{{ item }}</li>
+                {% endfor %}
+                {% if detail.analysis.red_flags|length == 0 %}
+                <li class="list-group-item px-0 text-muted">No red flags captured.</li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="section-subtitle">Next Action</h3>
+            <p class="mb-0">{{ detail.analysis.next_action }}</p>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="section-subtitle">Recommended Next Steps</h3>
+            <p class="mb-0">{{ detail.analysis.recommended_next_steps }}</p>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <h2 class="section-title">Analysis pending</h2>
+            <p class="text-muted mb-0">
+              This opportunity has not been analysed yet.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
