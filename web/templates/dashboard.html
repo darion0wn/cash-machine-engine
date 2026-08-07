@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
 
 {% block content %}
 <div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -149,15 +150,41 @@
               {% endfor %}
 
               <tr class="dashboard-filter-empty d-none" data-dashboard-filter-empty="top">
-                <td colspan="6" class="text-center text-muted py-5">
-                  No top opportunities match your search.
+                <td colspan="6" class="p-0">
+                  <div class="empty-state empty-state-neutral empty-state-inline">
+                    <div class="empty-state-icon" aria-hidden="true">🔎</div>
+                    <div class="empty-state-body">
+                      <div class="empty-state-title">No top opportunities match your search.</div>
+                      <div class="empty-state-copy">
+                        Try a different keyword or clear the search to return to the full list.
+                      </div>
+                    </div>
+                    <div class="empty-state-actions">
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        data-dashboard-search-reset
+                      >
+                        Clear search
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
 
               {% if top_opportunities|length == 0 %}
               <tr data-dashboard-default-empty="top">
-                <td colspan="6" class="text-center text-muted py-5">
-                  No ranked opportunities yet.
+                <td colspan="6" class="p-0">
+                  {{ empty_state(
+                    "No ranked opportunities yet",
+                    "Run the crawler to populate the workspace and start scoring opportunities.",
+                    icon="🌱",
+                    tone="build",
+                    primary_label="Open feed",
+                    primary_href=url_for('pages.feed'),
+                    secondary_label="Refresh",
+                    secondary_href=url_for('dashboard.index')
+                  ) }}
                 </td>
               </tr>
               {% endif %}
@@ -196,7 +223,17 @@
           {% endfor %}
 
           {% if hot_topics|length == 0 %}
-          <div class="text-muted">No topics detected yet.</div>
+          {{ empty_state(
+            "No topics detected yet",
+            "The trend radar will populate after the next crawl.",
+            icon="📡",
+            tone="trend",
+            primary_label="Open trends",
+            primary_href=url_for('pages.trends'),
+            secondary_label="Refresh",
+            secondary_href=url_for('dashboard.index'),
+            compact=True
+          ) }}
           {% endif %}
         </div>
       </div>
@@ -290,8 +327,17 @@
 
               {% if recent_analyses|length == 0 %}
               <tr data-dashboard-default-empty="recent">
-                <td colspan="6" class="text-center text-muted py-5">
-                  No analyses available yet.
+                <td colspan="6" class="p-0">
+                  {{ empty_state(
+                    "No analyses available yet",
+                    "The AI analysis queue has not produced results yet.",
+                    icon="🧠",
+                    tone="report",
+                    primary_label="Open reports",
+                    primary_href=url_for('pages.reports'),
+                    secondary_label="Refresh",
+                    secondary_href=url_for('dashboard.index')
+                  ) }}
                 </td>
               </tr>
               {% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
 
 {% block content %}
 <div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -108,7 +109,17 @@
           {% endfor %}
 
           {% if trend_cards|length == 0 %}
-          <div class="text-muted">No topics detected yet.</div>
+          {{ empty_state(
+            "No topics detected yet",
+            "The radar will light up after the next crawl brings in a few more signals.",
+            icon="📡",
+            tone="trend",
+            primary_label="Open feed",
+            primary_href=url_for('pages.feed'),
+            secondary_label="Refresh",
+            secondary_href=url_for('pages.trends'),
+            compact=True
+          ) }}
           {% endif %}
         </div>
       </div>
@@ -169,9 +180,13 @@
               {% endfor %}
             </div>
             {% else %}
-            <div class="trend-band-empty">
-              No topics in this band yet.
-            </div>
+            {{ empty_state(
+              "No topics in this band yet",
+              "This band will populate automatically as more opportunities roll in.",
+              icon="🧭",
+              tone="neutral",
+              compact=True
+            ) }}
             {% endif %}
           </div>
           {% endfor %}
@@ -235,7 +250,17 @@
             {% endfor %}
 
             {% if top_opportunities|length == 0 %}
-            <div class="text-muted">No opportunities ranked yet.</div>
+            {{ empty_state(
+              "No opportunities ranked yet",
+              "Ranked items will appear as soon as the next analyses land.",
+              icon="🚀",
+              tone="build",
+              primary_label="Open dashboard",
+              primary_href=url_for('dashboard.index'),
+              secondary_label="Open feed",
+              secondary_href=url_for('pages.feed'),
+              compact=True
+            ) }}
             {% endif %}
           </div>
         </div>
@@ -263,7 +288,17 @@
             {% endfor %}
 
             {% if recent_analyses|length == 0 %}
-            <div class="text-muted">No analyses yet.</div>
+            {{ empty_state(
+              "No analyses yet",
+              "Run the crawler to feed the radar with fresh AI evaluations.",
+              icon="🧠",
+              tone="report",
+              primary_label="Open dashboard",
+              primary_href=url_for('dashboard.index'),
+              secondary_label="Open feed",
+              secondary_href=url_for('pages.feed'),
+              compact=True
+            ) }}
             {% endif %}
           </div>
         </div>

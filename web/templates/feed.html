@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
 
 {% block content %}
 <div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -155,15 +156,44 @@
               {% endfor %}
 
               <tr class="dashboard-filter-empty d-none" data-dashboard-filter-empty="{{ section["tone"] }}">
-                <td colspan="6" class="text-center text-muted py-5">
-                  No {{ section["label"] }} opportunities match your search.
+                <td colspan="6" class="p-0">
+                  <div class="empty-state empty-state-{{ section['tone'] }} empty-state-inline">
+                    <div class="empty-state-icon" aria-hidden="true">
+                      {% if section["tone"] == "build" %}🚀{% elif section["tone"] == "watch" %}👀{% else %}🧊{% endif %}
+                    </div>
+                    <div class="empty-state-body">
+                      <div class="empty-state-title">
+                        No {{ section["label"] }} opportunities match your search.
+                      </div>
+                      <div class="empty-state-copy">
+                        Try a different keyword or return to the full feed.
+                      </div>
+                    </div>
+                    <div class="empty-state-actions">
+                      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('pages.feed') }}">Reset feed</a>
+                    </div>
+                  </div>
                 </td>
               </tr>
 
               {% if section["items"]|length == 0 %}
               <tr data-dashboard-default-empty="{{ section["tone"] }}">
-                <td colspan="6" class="text-center text-muted py-5">
-                  {{ section["empty_message"] }}
+                <td colspan="6" class="p-0">
+                  <div class="empty-state empty-state-{{ section['tone'] }} empty-state-inline">
+                    <div class="empty-state-icon" aria-hidden="true">
+                      {% if section["tone"] == "build" %}🚀{% elif section["tone"] == "watch" %}👀{% else %}🧊{% endif %}
+                    </div>
+                    <div class="empty-state-body">
+                      <div class="empty-state-title">{{ section["empty_message"] }}</div>
+                      <div class="empty-state-copy">
+                        The next crawl will try to fill this bucket with stronger signals.
+                      </div>
+                    </div>
+                    <div class="empty-state-actions">
+                      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('pages.trends') }}">Open trends</a>
+                      <a class="btn btn-primary btn-sm" href="{{ url_for('pages.feed') }}">Refresh</a>
+                    </div>
+                  </div>
                 </td>
               </tr>
               {% endif %}
@@ -209,7 +239,17 @@
           {% endfor %}
 
           {% if hot_topics|length == 0 %}
-          <div class="text-muted">No topics detected yet.</div>
+          {{ empty_state(
+            "No topics detected yet",
+            "The feed will surface market themes once a few more opportunities have been scored.",
+            icon="📡",
+            tone="trend",
+            primary_label="Open trends",
+            primary_href=url_for('pages.trends'),
+            secondary_label="Refresh",
+            secondary_href=url_for('pages.feed'),
+            compact=True
+          ) }}
           {% endif %}
         </div>
       </div>

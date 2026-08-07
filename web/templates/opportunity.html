@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -143,11 +144,21 @@
 
           <div class="mb-4">
             <h3 class="section-subtitle">Topics</h3>
+            {% if detail.analysis.topics|length > 0 %}
             <div class="d-flex flex-wrap gap-2">
               {% for topic in detail.analysis.topics %}
               <span class="topic-pill">{{ topic }}</span>
               {% endfor %}
             </div>
+            {% else %}
+            {{ empty_state(
+              "No topics extracted",
+              "The semantic topic extractor did not return any normalized topics for this opportunity.",
+              icon="🏷️",
+              tone="trend",
+              compact=True
+            ) }}
+            {% endif %}
           </div>
 
           <div class="mb-4">
@@ -158,26 +169,40 @@
           <div class="row g-4">
             <div class="col-md-6">
               <h3 class="section-subtitle">Key Evidence</h3>
+              {% if detail.analysis.key_evidence|length > 0 %}
               <ul class="list-group list-group-flush">
                 {% for item in detail.analysis.key_evidence %}
                 <li class="list-group-item px-0">{{ item }}</li>
                 {% endfor %}
-                {% if detail.analysis.key_evidence|length == 0 %}
-                <li class="list-group-item px-0 text-muted">No evidence captured.</li>
-                {% endif %}
               </ul>
+              {% else %}
+              {{ empty_state(
+                "No evidence captured yet",
+                "The model will surface supporting signals here once they are available.",
+                icon="🔎",
+                tone="neutral",
+                compact=True
+              ) }}
+              {% endif %}
             </div>
 
             <div class="col-md-6">
               <h3 class="section-subtitle">Red Flags</h3>
+              {% if detail.analysis.red_flags|length > 0 %}
               <ul class="list-group list-group-flush">
                 {% for item in detail.analysis.red_flags %}
                 <li class="list-group-item px-0">{{ item }}</li>
                 {% endfor %}
-                {% if detail.analysis.red_flags|length == 0 %}
-                <li class="list-group-item px-0 text-muted">No red flags captured.</li>
-                {% endif %}
               </ul>
+              {% else %}
+              {{ empty_state(
+                "No red flags captured yet",
+                "If the analysis spots risks, they will appear here so you can review them quickly.",
+                icon="⚠️",
+                tone="skip",
+                compact=True
+              ) }}
+              {% endif %}
             </div>
           </div>
 
@@ -191,12 +216,17 @@
             <p class="mb-0">{{ detail.analysis.recommended_next_steps }}</p>
           </div>
         {% else %}
-          <div class="text-center py-5">
-            <h2 class="section-title">Analysis pending</h2>
-            <p class="text-muted mb-0">
-              This opportunity has not been analysed yet.
-            </p>
-          </div>
+          {{ empty_state(
+            "Analysis pending",
+            "This opportunity has not been analysed yet. Run the crawler to generate the full report.",
+            icon="🧠",
+            tone="report",
+            primary_label="Back to dashboard",
+            primary_href=url_for('dashboard.index'),
+            secondary_label="Open feed",
+            secondary_href=url_for('pages.feed'),
+            compact=True
+          ) }}
         {% endif %}
       </div>
     </div>

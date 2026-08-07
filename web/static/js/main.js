@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ".main-content .portfolio-recent-item",
         ".main-content .report-archive-item",
         ".main-content .reports-source-item",
+        ".main-content .empty-state",
+        ".main-content .report-empty",
+        ".main-content .portfolio-empty",
+        ".main-content .trend-band-empty",
       ].join(", ")
     )
   );
@@ -140,6 +144,19 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     searchInput.addEventListener("input", updateSearchState);
+
+    const resetButtons = Array.from(
+      document.querySelectorAll("[data-dashboard-search-reset]")
+    );
+
+    resetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        searchInput.value = "";
+        updateSearchState();
+        searchInput.focus();
+      });
+    });
+
     updateSearchState();
   }
 

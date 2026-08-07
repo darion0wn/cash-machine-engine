@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
 
 {% block content %}
 <div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -41,10 +42,13 @@
           <span class="badge rounded-pill text-bg-light">Confidence {{ selected_report.confidence }}%</span>
         </div>
         {% else %}
-        <div class="hero-meta-value">No reports available</div>
-        <div class="reports-focus-meta">
-          Run the crawler to start generating markdown reports.
-        </div>
+        {{ empty_state(
+          "No reports available yet",
+          "Run the crawler to start generating markdown reports.",
+          icon="📄",
+          tone="report",
+          compact=True
+        ) }}
         {% endif %}
       </div>
     </div>
@@ -103,7 +107,17 @@
           {% endfor %}
 
           {% if reports|length == 0 %}
-          <div class="report-empty">No reports generated yet.</div>
+          {{ empty_state(
+            "No reports generated yet",
+            "The archive will fill automatically after the crawler completes.",
+            icon="🗂️",
+            tone="report",
+            primary_label="Open feed",
+            primary_href=url_for('pages.feed'),
+            secondary_label="Refresh",
+            secondary_href=url_for('pages.reports'),
+            compact=True
+          ) }}
           {% endif %}
         </div>
       </div>
@@ -127,7 +141,17 @@
           {% endfor %}
 
           {% if source_breakdown|length == 0 %}
-          <div class="report-empty">No source data yet.</div>
+          {{ empty_state(
+            "No source data yet",
+            "Crawl a few more opportunities and the archive will tell you where they came from.",
+            icon="🧭",
+            tone="neutral",
+            primary_label="Open dashboard",
+            primary_href=url_for('dashboard.index'),
+            secondary_label="Refresh",
+            secondary_href=url_for('pages.reports'),
+            compact=True
+          ) }}
           {% endif %}
         </div>
       </div>
@@ -192,12 +216,17 @@
             {{ selected_report.html | safe }}
           </div>
         {% else %}
-          <div class="text-center py-5">
-            <h2 class="section-title">No reports available</h2>
-            <p class="text-muted mb-0">
-              Run the crawler to start generating report markdown files.
-            </p>
-          </div>
+          {{ empty_state(
+            "No report selected",
+            "Run the crawler to generate your first CEO briefing, then pick it from the archive.",
+            icon="📄",
+            tone="report",
+            primary_label="Open feed",
+            primary_href=url_for('pages.feed'),
+            secondary_label="Open dashboard",
+            secondary_href=url_for('dashboard.index'),
+            compact=True
+          ) }}
         {% endif %}
       </div>
     </div>

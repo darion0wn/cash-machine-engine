@@ -591,6 +591,7 @@ a {
 
 .dashboard-filter-empty td {
   border-top: 0;
+  padding: 0;
 }
 
 @media (max-width: 991.98px) {
@@ -1720,7 +1721,111 @@ body.is-exiting .app-shell {
 .report-empty,
 .portfolio-empty,
 .trend-band-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px dashed #dbe3ef;
   background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  color: var(--cm-text);
+}
+
+.empty-state-inline {
+  margin-top: 2px;
+}
+
+.empty-state-compact {
+  padding: 14px 16px;
+  gap: 14px;
+}
+
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--empty-state-soft, rgba(37, 99, 235, 0.1));
+  color: var(--empty-state-accent, #2563eb);
+  font-size: 1.2rem;
+}
+
+.empty-state-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.empty-state-title {
+  font-size: 1rem;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.empty-state-copy {
+  color: var(--cm-muted);
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+  align-self: center;
+}
+
+.empty-state .btn {
+  white-space: nowrap;
+}
+
+.empty-state-neutral {
+  --empty-state-accent: #2563eb;
+  --empty-state-soft: rgba(37, 99, 235, 0.1);
+}
+
+.empty-state-build {
+  --empty-state-accent: #16a34a;
+  --empty-state-soft: rgba(22, 163, 74, 0.1);
+}
+
+.empty-state-watch {
+  --empty-state-accent: #d97706;
+  --empty-state-soft: rgba(217, 119, 6, 0.1);
+}
+
+.empty-state-skip {
+  --empty-state-accent: #dc2626;
+  --empty-state-soft: rgba(220, 38, 38, 0.1);
+}
+
+.empty-state-trend {
+  --empty-state-accent: #0ea5e9;
+  --empty-state-soft: rgba(14, 165, 233, 0.1);
+}
+
+.empty-state-report {
+  --empty-state-accent: #7c3aed;
+  --empty-state-soft: rgba(124, 58, 237, 0.1);
+}
+
+.page-placeholder .empty-state {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.page-placeholder .empty-state-actions {
+  margin-left: 0;
+  justify-content: center;
 }
 
 @media (max-width: 1199.98px) {
@@ -1821,6 +1926,19 @@ body.is-exiting .app-shell {
 }
 
 
+@media (max-width: 575.98px) {
+  .empty-state {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .empty-state-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}
+
 
 /* --------------------------------------------------------------------------
    RESPONSIVE POLISH
@@ -1893,6 +2011,14 @@ body.sidebar-open {
   border-color: #bfd1ee;
   box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
 }
+
+
+.empty-state-note {
+  color: var(--cm-muted);
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
+
 
 @media (min-width: 992px) {
   .mobile-topbar {
