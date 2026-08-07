@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-from flask import Flask
+from flask import Flask, render_template
 
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
@@ -34,6 +34,22 @@ def create_app() -> Flask:
             "app_name": "Cash Machine Engine",
             "current_year": 2026,
         }
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template(
+            "404.html",
+            active_page=None,
+            page_title="404 - Opportunity not found",
+        ), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        return render_template(
+            "500.html",
+            active_page=None,
+            page_title="500 - Something went wrong",
+        ), 500
 
     return app
 

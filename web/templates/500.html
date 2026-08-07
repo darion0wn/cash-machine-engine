@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "components/error_state.html" import error_state %}
+
+{% block content %}
+{{ error_state(
+  code="500",
+  title="Something went wrong",
+  message="Cash Machine Engine hit an unexpected issue while rendering this page. Your workspace is still intact, and you can jump back to the dashboard or reports to keep moving.",
+  primary_label="Go to Dashboard",
+  primary_href=url_for('dashboard.index'),
+  secondary_label="Open Reports",
+  secondary_href=url_for('pages.reports'),
+  bullets=[
+    "The workspace data is still safe in the database.",
+    "Reload the page or go back to the dashboard.",
+    "If the issue repeats, check the logs and retry."
+  ],
+  request_path=request.path
+) }}
+{% endblock %}

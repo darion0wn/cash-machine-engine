@@ -1,0 +1,71 @@
+{% macro error_state(
+  code,
+  title,
+  message,
+  primary_label,
+  primary_href,
+  secondary_label=None,
+  secondary_href=None,
+  bullets=None,
+  request_path=None
+) -%}
+<section class="error-shell">
+  <div class="card error-hero">
+    <div class="card-body error-hero-body">
+      <div class="error-code-row">
+        <div class="error-code-badge" aria-hidden="true">{{ code }}</div>
+        {% if request_path %}
+        <div class="error-request-path">
+          Requested path: <code>{{ request_path }}</code>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="row g-4 align-items-stretch error-grid">
+        <div class="col-lg-8">
+          <div class="hero-kicker">Founder Workspace</div>
+          <h1 class="hero-title">{{ title }}</h1>
+          <p class="hero-text">
+            {{ message }}
+          </p>
+
+          <div class="error-actions">
+            <a class="btn btn-light btn-lg" href="{{ primary_href }}">
+              {{ primary_label }}
+            </a>
+
+            {% if secondary_label and secondary_href %}
+            <a class="btn btn-outline-light btn-lg" href="{{ secondary_href }}">
+              {{ secondary_label }}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="error-aside card">
+            <div class="card-body">
+              <div class="error-aside-label">Quick recovery</div>
+              <div class="error-aside-title">Keep the momentum</div>
+              <p class="error-aside-copy">
+                The workspace is still available. Use one of the actions below to continue.
+              </p>
+
+              {% if bullets %}
+              <ul class="error-list">
+                {% for bullet in bullets %}
+                <li class="error-list-item">
+                  <span class="error-list-icon" aria-hidden="true">•</span>
+                  <span>{{ bullet }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{%- endmacro %}

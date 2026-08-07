@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "components/error_state.html" import error_state %}
+
+{% block content %}
+{{ error_state(
+  code="404",
+  title="Opportunity not found",
+  message="The page you're looking for does not exist in the Founder Workspace. It may have been moved, renamed, or never tracked in the first place.",
+  primary_label="Go to Dashboard",
+  primary_href=url_for('dashboard.index'),
+  secondary_label="Open Feed",
+  secondary_href=url_for('pages.feed'),
+  bullets=[
+    "Check the URL for typos.",
+    "Open the feed to continue browsing opportunities.",
+    "Return to the dashboard for a quick overview."
+  ],
+  request_path=request.path
+) }}
+{% endblock %}
