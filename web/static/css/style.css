@@ -2263,3 +2263,332 @@ body.sidebar-open {
     font-size: 0.93rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   VISUAL CONSISTENCY POLISH
+   -------------------------------------------------------------------------- */
+
+:root {
+  --cm-surface: #ffffff;
+  --cm-surface-soft: #f8fafc;
+  --cm-border: #dbe3ef;
+  --cm-border-strong: #c7d2e3;
+  --cm-card-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+  --cm-card-shadow-hover: 0 20px 48px rgba(15, 23, 42, 0.12);
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(29, 78, 216, 0.05), transparent 24%),
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.04), transparent 20%),
+    var(--cm-bg);
+}
+
+.card {
+  border: 1px solid var(--cm-border);
+  box-shadow: var(--cm-card-shadow);
+  background: var(--cm-surface);
+}
+
+.card:hover {
+  box-shadow: var(--cm-card-shadow-hover);
+}
+
+.page-title,
+.hero-title,
+.section-title {
+  letter-spacing: -0.04em;
+}
+
+.page-title,
+.hero-title {
+  line-height: 1.05;
+}
+
+.dashboard-eyebrow,
+.hero-kicker,
+.sidebar-section-title,
+.sidebar-card-label,
+.metric-label,
+.report-snapshot-label,
+.section-subtitle.muted {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+}
+
+.dashboard-eyebrow,
+.hero-kicker,
+.sidebar-section-title,
+.sidebar-card-label,
+.metric-label,
+.report-snapshot-label {
+  color: var(--cm-muted);
+}
+
+.page-subtitle {
+  max-width: 64rem;
+  color: var(--cm-muted);
+}
+
+.hero .card-body,
+.trend-hero .card-body,
+.portfolio-hero .card-body,
+.reports-hero .card-body {
+  padding: 24px;
+}
+
+.dashboard-search-card,
+.page-placeholder {
+  overflow: hidden;
+}
+
+.dashboard-search-card .card-body {
+  padding: 22px;
+}
+
+.dashboard-search-card .card-body::after {
+  opacity: 0.7;
+}
+
+.hero-compact .hero-meta-panel,
+.trend-hero-panel,
+.portfolio-focus-panel,
+.reports-focus-panel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-meta-badges {
+  margin-top: 12px;
+}
+
+.metric .card-body,
+.score-card,
+.search-stat,
+.report-snapshot-card {
+  background: linear-gradient(180deg, var(--cm-surface-soft) 0%, var(--cm-surface) 100%);
+}
+
+.search-stat,
+.report-snapshot-card,
+.score-card {
+  border: 1px solid var(--cm-border);
+}
+
+.topic-item,
+.pipeline-row,
+.trend-band-item,
+.trend-opportunity-item,
+.portfolio-item,
+.portfolio-recent-item,
+.report-archive-item,
+.reports-source-item {
+  background: linear-gradient(180deg, var(--cm-surface-soft) 0%, var(--cm-surface) 100%);
+  border-color: var(--cm-border);
+}
+
+.topic-item:hover,
+.pipeline-row:hover,
+.trend-band-item:hover,
+.trend-opportunity-item:hover,
+.portfolio-item:hover,
+.portfolio-recent-item:hover,
+.report-archive-item:hover,
+.reports-source-item:hover {
+  border-color: var(--cm-border-strong);
+}
+
+.topic-item {
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+}
+
+.topic-title {
+  font-size: 0.98rem;
+}
+
+.topic-score {
+  min-width: 60px;
+  font-size: 1.05rem;
+}
+
+.topic-score::after {
+  letter-spacing: 0.12em;
+}
+
+.pipeline-row {
+  border-radius: 16px;
+}
+
+.score-card {
+  border-radius: 18px;
+}
+
+.detail-row {
+  border-bottom-color: var(--cm-border);
+}
+
+.detail-row strong {
+  color: #0f172a;
+}
+
+.report-preview-card,
+.reports-sidebar-sticky,
+.feed-sidebar-sticky,
+.trend-sidebar-sticky,
+.portfolio-sidebar-sticky {
+  box-shadow: none;
+}
+
+.report-preview-header,
+.trend-band-header,
+.portfolio-section-header,
+.report-archive-item,
+.reports-source-item {
+  gap: 14px;
+}
+
+.report-archive-item.active,
+.portfolio-item:hover,
+.trend-opportunity-item:hover {
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-search-input,
+.form-control {
+  border-color: var(--cm-border);
+}
+
+.dashboard-search-input:focus,
+.form-control:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.08);
+}
+
+.btn {
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.btn:hover {
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+}
+
+.table > :not(caption) > * > * {
+  border-color: #e6edf7;
+}
+
+.table thead th {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.report-markdown {
+  color: #1e293b;
+}
+
+.report-markdown h1,
+.report-markdown h2,
+.report-markdown h3,
+.report-markdown h4,
+.report-markdown h5,
+.report-markdown h6 {
+  letter-spacing: -0.04em;
+}
+
+.empty-state,
+.report-empty,
+.portfolio-empty,
+.trend-band-empty {
+  border-color: var(--cm-border);
+}
+
+.empty-state-title {
+  letter-spacing: -0.03em;
+}
+
+@media (max-width: 991.98px) {
+  .hero .card-body,
+  .trend-hero .card-body,
+  .portfolio-hero .card-body,
+  .reports-hero .card-body {
+    padding: 20px;
+  }
+
+  .dashboard-search-card .card-body {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-search-card .card-body {
+    padding: 16px;
+  }
+
+  .topic-item,
+  .pipeline-row,
+  .trend-band-item,
+  .trend-opportunity-item,
+  .portfolio-item,
+  .portfolio-recent-item,
+  .report-archive-item,
+  .reports-source-item {
+    border-radius: 16px;
+  }
+}
+
+
+
+/* --------------------------------------------------------------------------
+   HERO BACKGROUND RESTORATION
+   -------------------------------------------------------------------------- */
+
+.hero.card,
+.hero.hero-compact.card {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  box-shadow: var(--cm-card-shadow);
+}
+
+.trend-hero.card {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 52%, #2563eb 100%);
+  box-shadow: var(--cm-card-shadow);
+}
+
+.portfolio-hero.card,
+.reports-hero.card {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 52%, #2563eb 100%);
+  box-shadow: var(--cm-card-shadow);
+}
+
+.hero.card .hero-kicker,
+.hero.card .hero-text,
+.hero.card .hero-meta-label,
+.hero.card .hero-meta-value,
+.trend-hero.card .hero-kicker,
+.trend-hero.card .hero-text,
+.trend-hero.card .hero-meta-label,
+.trend-hero.card .hero-meta-value,
+.portfolio-hero.card .hero-kicker,
+.portfolio-hero.card .hero-text,
+.portfolio-hero.card .hero-meta-label,
+.portfolio-hero.card .hero-meta-value,
+.reports-hero.card .hero-kicker,
+.reports-hero.card .hero-text,
+.reports-hero.card .hero-meta-label,
+.reports-hero.card .hero-meta-value {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.hero.card .hero-kicker,
+.trend-hero.card .hero-kicker,
+.portfolio-hero.card .hero-kicker,
+.reports-hero.card .hero-kicker {
+  color: rgba(255, 255, 255, 0.72);
+}

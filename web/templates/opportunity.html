@@ -2,8 +2,9 @@
 {% from "components/empty_state.html" import empty_state %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
   <div>
+    <div class="dashboard-eyebrow">Opportunity workspace</div>
     <h1 class="page-title mb-2">{{ detail.opportunity.title }}</h1>
     <p class="page-subtitle mb-0">
       {{ detail.opportunity.source }}
