@@ -208,7 +208,7 @@ class ReportsService:
         )
         confidence = self._extract_scalar(
             content,
-            r"\*\*Confidence:\*\*\s*([0-9]+)\s*%",
+            r"\*\*Confidence:\*\*\s*([0-9]+)\s*(?:%|/10)?",
             default="0",
         )
         opportunity_id = self._extract_scalar(

@@ -36,7 +36,7 @@ class ReportContextBuilder:
 
             "investment_recommendation": recommendation_badge,
 
-            "confidence": f"{analysis.confidence}%",
+            "confidence": f"{analysis.confidence}/10",
 
             # ------------------------------------------------------------------
             # Source

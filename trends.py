@@ -12,7 +12,10 @@ def main():
 
     engine = TrendEngine()
 
-    trends = engine.top(30)
+    try:
+        trends = engine.top(30)
+    finally:
+        engine.repository.db.conn.close()
 
     print()
 

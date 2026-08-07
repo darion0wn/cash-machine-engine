@@ -39,7 +39,7 @@
           <span class="badge rounded-pill text-bg-light">{{ selected_report.status_badge }}</span>
           <span class="badge rounded-pill text-bg-light">{{ selected_report.recommendation }}</span>
           <span class="badge rounded-pill text-bg-light">Cash {{ selected_report.cash_machine_score }}</span>
-          <span class="badge rounded-pill text-bg-light">Confidence {{ selected_report.confidence }}%</span>
+          <span class="badge rounded-pill text-bg-light">Confidence {{ selected_report.confidence }}/10</span>
         </div>
         {% else %}
         {{ empty_state(
@@ -96,7 +96,7 @@
               </div>
               <div class="d-flex flex-column align-items-end gap-2">
                 <span class="status-pill status-{{ report.tone }}">{{ report.verdict }}</span>
-                <span class="report-confidence">{{ report.confidence }}%</span>
+                <span class="report-confidence">{{ report.confidence }}/10</span>
               </div>
             </div>
 
@@ -174,7 +174,7 @@
               <span class="badge rounded-pill text-bg-success">{{ selected_report.verdict }}</span>
               <span class="badge rounded-pill text-bg-light">{{ selected_report.recommendation }}</span>
               <span class="badge rounded-pill text-bg-dark">Cash {{ selected_report.cash_machine_score }}</span>
-              <span class="badge rounded-pill text-bg-secondary">Confidence {{ selected_report.confidence }}%</span>
+              <span class="badge rounded-pill text-bg-secondary">Confidence {{ selected_report.confidence }}/10</span>
               {% if selected_report.opportunity_id %}
               <a
                 class="btn btn-outline-secondary btn-sm"
