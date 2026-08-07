@@ -15,6 +15,14 @@ if str(ROOT_DIR) not in sys.path:
 from web.routes import register_routes  # noqa: E402
 
 
+APP_NAME = "Cash Machine Engine"
+APP_DESCRIPTION = (
+    "AI Founder Workspace that scans opportunities, scores them, tracks market "
+    "momentum, and helps decide what is worth building."
+)
+APP_VERSION = os.getenv("APP_VERSION", "1.0")
+
+
 def create_app() -> Flask:
     app = Flask(
         __name__,
@@ -31,7 +39,9 @@ def create_app() -> Flask:
     @app.context_processor
     def inject_globals():
         return {
-            "app_name": "Cash Machine Engine",
+            "app_name": APP_NAME,
+            "app_description": APP_DESCRIPTION,
+            "app_version": APP_VERSION,
             "current_year": 2026,
         }
 
@@ -41,6 +51,10 @@ def create_app() -> Flask:
             "404.html",
             active_page=None,
             page_title="404 - Opportunity not found",
+            page_description=(
+                "The requested page could not be found inside the Founder "
+                "Workspace."
+            ),
         ), 404
 
     @app.errorhandler(500)
@@ -49,6 +63,10 @@ def create_app() -> Flask:
             "500.html",
             active_page=None,
             page_title="500 - Something went wrong",
+            page_description=(
+                "The Founder Workspace hit an unexpected error while rendering "
+                "this page."
+            ),
         ), 500
 
     return app

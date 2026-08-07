@@ -16,6 +16,10 @@ def index():
         "dashboard.html",
         active_page="dashboard",
         page_title="Dashboard",
+        page_description=(
+            "Live founder dashboard with BUILD, WATCH and SKIP signals, "
+            "hot topics and recent analyses."
+        ),
         **dashboard_data,
     )
 
@@ -29,9 +33,24 @@ def detail(opportunity_id: int):
     if detail_data is None:
         abort(404)
 
+    opportunity = detail_data.get("opportunity", {})
+    analysis = detail_data.get("analysis") or {}
+
+    topic = opportunity.get("topic_label") or analysis.get("topic_label") or "opportunity"
+    source = opportunity.get("source") or "tracked source"
+    cash_score = analysis.get("cash_machine_score")
+
+    description_parts = [
+        f"{source} opportunity focused on {topic}.",
+    ]
+
+    if cash_score is not None:
+        description_parts.append(f"Cash score: {cash_score}.")
+
     return render_template(
         "opportunity.html",
         active_page="dashboard",
-        page_title=detail_data["opportunity"]["title"],
+        page_title=opportunity.get("title") or "Opportunity",
+        page_description=" ".join(description_parts),
         detail=detail_data,
     )

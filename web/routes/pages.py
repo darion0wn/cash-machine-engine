@@ -31,6 +31,10 @@ def _render_reports(report_id: int | None = None):
         "reports.html",
         active_page="reports",
         page_title="Reports",
+        page_description=(
+            "CEO briefing with archived analyses, market changes and "
+            "recommended actions."
+        ),
         **reports_data,
     )
 
@@ -44,6 +48,10 @@ def feed():
         "feed.html",
         active_page="feed",
         page_title="Feed",
+        page_description=(
+            "Decision feed with BUILD, WATCH and SKIP opportunities and "
+            "market signals."
+        ),
         **feed_data,
     )
 
@@ -57,6 +65,10 @@ def trends():
         "trends.html",
         active_page="trends",
         page_title="Trends",
+        page_description=(
+            "Market radar with hot topics, momentum bands and related "
+            "opportunities."
+        ),
         **trends_data,
     )
 
@@ -70,6 +82,9 @@ def portfolio():
         "portfolio.html",
         active_page="portfolio",
         page_title="Portfolio",
+        page_description=(
+            "Founder portfolio workspace with BUILD, WATCH and SKIP buckets."
+        ),
         **portfolio_data,
     )
 
@@ -93,6 +108,6 @@ def report_detail(report_id: int):
 def settings():
     return _render_placeholder(
         "Settings",
-        "Settings will let you tune the dashboard, ranking and alerts in a later sprint.",
+        "Settings let you tune the dashboard, ranking and alerts in a later sprint.",
         "settings",
     )
