@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "components/empty_state.html" import empty_state %}
+{% from "components/advanced_filters.html" import advanced_filters %}
 
 {% block content %}
 <div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -77,6 +78,14 @@
     </div>
   </div>
 </div>
+
+{{ advanced_filters(
+  url_for('pages.feed'),
+  filters,
+  filter_options,
+  filtered_total,
+  variant="feed"
+) }}
 
 <div class="row g-3 mb-4">
   {% for card in metrics %}

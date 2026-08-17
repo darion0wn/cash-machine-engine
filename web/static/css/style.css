@@ -3488,3 +3488,70 @@ body {
     min-height: 220px;
   }
 }
+
+/* -------------------------------------------------------------------------
+   Advanced Filters
+   ------------------------------------------------------------------------- */
+
+.advanced-filter-card {
+  border: 1px solid var(--border-color, #dbe4f0);
+}
+
+.advanced-filter-form .form-label {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+.advanced-filter-form .form-select,
+.advanced-filter-form .form-control {
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.advanced-filter-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.advanced-filter-hint {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.advanced-filter-result {
+  min-width: 180px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #dbe4f0;
+  background: #f8fafc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.advanced-filter-result span {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.advanced-filter-result strong {
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 767.98px) {
+  .advanced-filter-result {
+    width: 100%;
+  }
+}

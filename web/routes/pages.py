@@ -43,7 +43,11 @@ def _render_reports(report_id: int | None = None):
 @pages_bp.route("/feed")
 def feed():
     service = FeedService()
-    feed_data = service.get_feed_data()
+    filters = {
+        key: request.args.get(key, "")
+        for key in service.FILTER_DEFAULTS
+    }
+    feed_data = service.get_feed_data(filters=filters)
 
     return render_template(
         "feed.html",
@@ -77,7 +81,11 @@ def trends():
 @pages_bp.route("/portfolio")
 def portfolio():
     service = PortfolioService()
-    portfolio_data = service.get_portfolio_data()
+    filters = {
+        key: request.args.get(key, "")
+        for key in service.FILTER_DEFAULTS
+    }
+    portfolio_data = service.get_portfolio_data(filters=filters)
 
     return render_template(
         "portfolio.html",

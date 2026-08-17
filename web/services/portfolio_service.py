@@ -32,6 +32,7 @@ class PortfolioService(FeedService):
         self,
         summary: dict,
         limit_per_section: int,
+        filters: dict | None = None,
     ) -> list[dict]:
 
         sections = []
@@ -41,6 +42,7 @@ class PortfolioService(FeedService):
             items = self._query_bucket(
                 definition["status"],
                 limit_per_section,
+                filters,
             )
 
             sections.append(
@@ -49,10 +51,10 @@ class PortfolioService(FeedService):
                     "label": definition["label"],
                     "tone": definition["tone"],
                     "description": definition["description"],
-                    "count": summary.get(
-                        f"{definition['status'].lower()}_count",
-                        0,
-                    ) or 0,
+                    "count": self._count_bucket(
+                        definition["status"],
+                        self._normalize_filters(filters),
+                    ),
                     "items": items,
                     "empty_message": definition["empty_message"],
                 }
@@ -76,12 +78,17 @@ class PortfolioService(FeedService):
 
         return None
 
-    def get_portfolio_data(self, limit_per_section: int = 6) -> dict:
+    def get_portfolio_data(
+        self,
+        limit_per_section: int = 24,
+        filters: dict | None = None,
+    ) -> dict:
 
         summary = self.dashboard_service.get_summary()
         sections = self._build_sections(
             summary,
             limit_per_section,
+            filters,
         )
         hot_topics = self.dashboard_service.get_hot_topics(5)
         recent_analyses = self.dashboard_service.get_recent_analyses(5)
@@ -148,6 +155,8 @@ class PortfolioService(FeedService):
             },
         ]
 
+        normalized_filters = self._normalize_filters(filters)
+
         return {
             "summary": summary,
             "metrics": metrics,
@@ -156,4 +165,7 @@ class PortfolioService(FeedService):
             "signal_rows": signal_rows,
             "hot_topics": hot_topics,
             "recent_analyses": recent_analyses,
+            "filters": normalized_filters,
+            "filter_options": self._get_filter_options(),
+            "filtered_total": sum(section["count"] for section in sections),
         }

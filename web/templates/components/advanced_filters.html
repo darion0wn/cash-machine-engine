@@ -1,0 +1,125 @@
+{% macro advanced_filters(action_url, filter_state, filter_options, filtered_total, variant="feed") %}
+<div class="card advanced-filter-card mb-4">
+  <div class="card-body">
+    <form method="get" action="{{ action_url }}" class="advanced-filter-form">
+      <div class="advanced-filter-header">
+        <div>
+          <div class="dashboard-search-label">Advanced filters</div>
+          <div class="advanced-filter-hint">
+            Narrow the shortlist by signal strength, market source and time.
+          </div>
+        </div>
+        <div class="advanced-filter-result">
+          <span>Matching opportunities</span>
+          <strong>{{ filtered_total }}</strong>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-status">Status</label>
+          <select class="form-select" id="{{ variant }}-status" name="status">
+            {% for status in filter_options.statuses %}
+            <option value="{{ status }}" {% if filter_state.status == status %}selected{% endif %}>
+              {{ status|title if status != "ALL" else "All" }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-source">Source</label>
+          <select class="form-select" id="{{ variant }}-source" name="source">
+            <option value="ALL" {% if filter_state.source == "ALL" %}selected{% endif %}>All sources</option>
+            {% for source in filter_options.sources %}
+            <option value="{{ source }}" {% if filter_state.source == source %}selected{% endif %}>
+              {{ source }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-topic">Topic</label>
+          <select class="form-select" id="{{ variant }}-topic" name="topic">
+            <option value="ALL" {% if filter_state.topic == "ALL" %}selected{% endif %}>All topics</option>
+            {% for topic in filter_options.topics %}
+            <option value="{{ topic }}" {% if filter_state.topic == topic %}selected{% endif %}>
+              {{ topic }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-min-cash">Cash ≥</label>
+          <input
+            class="form-control"
+            id="{{ variant }}-min-cash"
+            name="min_cash"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            value="{{ filter_state.min_cash }}"
+            placeholder="0–100"
+          >
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-max-rank">Rank ≤</label>
+          <input
+            class="form-control"
+            id="{{ variant }}-max-rank"
+            name="max_rank"
+            type="number"
+            min="1"
+            max="100"
+            step="1"
+            value="{{ filter_state.max_rank }}"
+            placeholder="e.g. 30"
+          >
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-sort">Sort by</label>
+          <select class="form-select" id="{{ variant }}-sort" name="sort">
+            {% for sort in filter_options.sorts %}
+            <option value="{{ sort.value }}" {% if filter_state.sort == sort.value %}selected{% endif %}>
+              {{ sort.label }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-date-from">From</label>
+          <input
+            class="form-control"
+            id="{{ variant }}-date-from"
+            name="date_from"
+            type="date"
+            value="{{ filter_state.date_from }}"
+          >
+        </div>
+
+        <div class="col-md-6 col-xl-2">
+          <label class="form-label" for="{{ variant }}-date-to">To</label>
+          <input
+            class="form-control"
+            id="{{ variant }}-date-to"
+            name="date_to"
+            type="date"
+            value="{{ filter_state.date_to }}"
+          >
+        </div>
+
+        <div class="col-md-12 col-xl-4 d-flex align-items-end gap-2">
+          <button class="btn btn-primary flex-grow-1" type="submit">Apply filters</button>
+          <a class="btn btn-outline-secondary" href="{{ action_url }}">Reset</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endmacro %}

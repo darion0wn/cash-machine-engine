@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 from database.database import Database
+from services.topic_normalizer import TopicNormalizer
 from .dashboard_service import DashboardService
 
 
@@ -211,10 +212,153 @@ class FeedService:
 
         return mapping.get((value or "").upper(), value or "Unknown")
 
-    def _query_bucket(self, status: str, limit: int = 6) -> list[dict]:
+    FILTER_DEFAULTS = {
+        "status": "ALL",
+        "source": "ALL",
+        "topic": "ALL",
+        "min_cash": "",
+        "max_rank": "",
+        "date_from": "",
+        "date_to": "",
+        "sort": "ranking_desc",
+    }
+
+    SORT_OPTIONS = {
+        "ranking_desc": "Ranking ↓",
+        "ranking_asc": "Ranking ↑",
+        "cash_desc": "Cash Score ↓",
+        "cash_asc": "Cash Score ↑",
+        "trend_desc": "Trend ↓",
+        "trend_asc": "Trend ↑",
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+    }
+
+    def _normalize_filters(self, filters: dict | None) -> dict:
+        values = dict(self.FILTER_DEFAULTS)
+
+        if filters:
+            for key in values:
+                value = filters.get(key)
+                if value is not None:
+                    values[key] = str(value).strip()
+
+        if values["status"] not in {"ALL", "BUILD", "WATCH", "SKIP"}:
+            values["status"] = "ALL"
+
+        if values["source"] == "":
+            values["source"] = "ALL"
+
+        if values["topic"] == "":
+            values["topic"] = "ALL"
+
+        if values["sort"] not in self.SORT_OPTIONS:
+            values["sort"] = self.FILTER_DEFAULTS["sort"]
+
+        for key in ("min_cash", "max_rank"):
+            try:
+                number = int(values[key]) if values[key] else None
+            except (TypeError, ValueError):
+                number = None
+
+            if number is not None:
+                values[key] = str(max(0, min(100, number)))
+            else:
+                values[key] = ""
+
+        for key in ("date_from", "date_to"):
+            value = values[key]
+            if value:
+                try:
+                    datetime.strptime(value, "%Y-%m-%d")
+                except ValueError:
+                    values[key] = ""
+
+        return values
+
+    @staticmethod
+    def _order_by(sort: str) -> str:
+        return {
+            "ranking_desc": "a.ranking_score DESC, a.cash_machine_score DESC, a.id DESC",
+            "ranking_asc": "a.ranking_score ASC, a.cash_machine_score DESC, a.id DESC",
+            "cash_desc": "a.cash_machine_score DESC, a.ranking_score DESC, a.id DESC",
+            "cash_asc": "a.cash_machine_score ASC, a.ranking_score ASC, a.id DESC",
+            "trend_desc": "a.trend_score DESC, a.ranking_score DESC, a.id DESC",
+            "trend_asc": "a.trend_score ASC, a.ranking_score ASC, a.id DESC",
+            "newest": "a.created_at DESC, a.id DESC",
+            "oldest": "a.created_at ASC, a.id ASC",
+        }.get(sort, "a.ranking_score DESC, a.cash_machine_score DESC, a.id DESC")
+
+    def _filter_clauses(
+        self,
+        filters: dict,
+        status: str | None = None,
+    ) -> tuple[list[str], list]:
+        clauses = ["a.ranking_score > 0"]
+        params: list = []
+
+        effective_status = status if status else filters.get("status", "ALL")
+        if effective_status and effective_status != "ALL":
+            clauses.append("a.portfolio_status = ?")
+            params.append(effective_status)
+
+        source = filters.get("source", "ALL")
+        if source and source != "ALL":
+            clauses.append("o.source = ?")
+            params.append(source)
+
+        topic = filters.get("topic", "ALL")
+        if topic and topic != "ALL":
+            normalizer = TopicNormalizer()
+            search_terms = {topic}
+
+            for alias, canonical in TopicNormalizer.ALIASES.items():
+                if canonical.lower() == topic.lower():
+                    search_terms.add(alias)
+
+            topic_parts = []
+            for term in sorted(search_terms):
+                needle = f"%{term}%"
+                topic_parts.append(
+                    "(LOWER(COALESCE(a.topics, '')) LIKE LOWER(?) "
+                    "OR LOWER(COALESCE(o.topics, '')) LIKE LOWER(?) "
+                    "OR LOWER(COALESCE(a.category, '')) LIKE LOWER(?))"
+                )
+                params.extend([needle, needle, needle])
+
+            clauses.append("(" + " OR ".join(topic_parts) + ")")
+
+        if filters.get("min_cash"):
+            clauses.append("a.cash_machine_score >= ?")
+            params.append(int(filters["min_cash"]))
+
+        if filters.get("max_rank"):
+            clauses.append("a.ranking_score <= ?")
+            params.append(int(filters["max_rank"]))
+
+        if filters.get("date_from"):
+            clauses.append("DATE(a.created_at) >= DATE(?)")
+            params.append(filters["date_from"])
+
+        if filters.get("date_to"):
+            clauses.append("DATE(a.created_at) <= DATE(?)")
+            params.append(filters["date_to"])
+
+        return clauses, params
+
+    def _query_bucket(
+        self,
+        status: str,
+        limit: int = 24,
+        filters: dict | None = None,
+    ) -> list[dict]:
+        filters = self._normalize_filters(filters)
+        clauses, params = self._filter_clauses(filters, status=status)
+        where_sql = " AND ".join(clauses)
+        order_sql = self._order_by(filters["sort"])
 
         rows = self._query_all(
-            """
+            f"""
             SELECT
                 a.id AS analysis_id,
                 a.opportunity_id,
@@ -229,21 +373,18 @@ class FeedService:
                 a.biggest_risk,
                 a.cash_machine_score,
                 a.ranking_score,
+                a.trend_score,
                 a.portfolio_status,
                 a.build_verdict,
                 a.created_at AS analysis_created_at
             FROM analyses a
             JOIN opportunities o
               ON o.id = a.opportunity_id
-            WHERE a.portfolio_status = ?
-              AND a.ranking_score > 0
-            ORDER BY
-                a.ranking_score DESC,
-                a.cash_machine_score DESC,
-                a.id DESC
+            WHERE {where_sql}
+            ORDER BY {order_sql}
             LIMIT ?
             """,
-            (status, limit),
+            tuple(params + [limit]),
         )
 
         items = []
@@ -275,6 +416,7 @@ class FeedService:
                     "url": row.get("url") or "",
                     "cash_machine_score": row.get("cash_machine_score") or 0,
                     "ranking_score": row.get("ranking_score") or 0,
+                    "trend_score": row.get("trend_score") or 0,
                     "portfolio_status": row.get("portfolio_status") or "WATCH",
                     "build_verdict": row.get("build_verdict") or "Unknown",
                     "primary_topic": self._primary_topic(
@@ -298,21 +440,90 @@ class FeedService:
 
         return items
 
-    def get_feed_data(self) -> dict:
+    def _count_bucket(self, status: str, filters: dict) -> int:
+        clauses, params = self._filter_clauses(filters, status=status)
+        where_sql = " AND ".join(clauses)
 
+        row = self._query_all(
+            f"""
+            SELECT COUNT(*) AS total
+            FROM analyses a
+            JOIN opportunities o
+              ON o.id = a.opportunity_id
+            WHERE {where_sql}
+            """,
+            tuple(params),
+        )
+
+        return int(row[0].get("total") or 0) if row else 0
+
+    def _get_filter_options(self) -> dict:
+        sources_rows = self._query_all(
+            """
+            SELECT DISTINCT source
+            FROM opportunities
+            WHERE source IS NOT NULL AND TRIM(source) <> ''
+            ORDER BY source ASC
+            """
+        )
+
+        topic_rows = self._query_all(
+            """
+            SELECT a.topics, o.topics AS opportunity_topics, a.category
+            FROM analyses a
+            JOIN opportunities o ON o.id = a.opportunity_id
+            WHERE a.ranking_score > 0
+            """
+        )
+
+        normalizer = TopicNormalizer()
+        topics = []
+        seen = set()
+
+        for row in topic_rows:
+            candidates = []
+            candidates.extend(self._parse_json_list(row.get("topics")))
+            candidates.extend(self._parse_json_list(row.get("opportunity_topics")))
+            candidates.extend(self._split_category(row.get("category")))
+
+            for topic in candidates:
+                normalized = normalizer.normalize(topic)
+                if not normalized:
+                    continue
+                key = normalized.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                topics.append(normalized)
+
+        topics.sort(key=str.lower)
+
+        return {
+            "sources": [row["source"] for row in sources_rows if row.get("source")],
+            "topics": topics,
+            "statuses": ["ALL", "BUILD", "WATCH", "SKIP"],
+            "sorts": [
+                {"value": key, "label": label}
+                for key, label in self.SORT_OPTIONS.items()
+            ],
+        }
+
+    def get_feed_data(self, filters: dict | None = None) -> dict:
+
+        filters = self._normalize_filters(filters)
         summary = self.dashboard_service.get_summary()
         hot_topics = self.dashboard_service.get_hot_topics(5)
 
-        build_items = self._query_bucket("BUILD", 6)
-        watch_items = self._query_bucket("WATCH", 6)
-        skip_items = self._query_bucket("SKIP", 6)
+        build_items = self._query_bucket("BUILD", 24, filters)
+        watch_items = self._query_bucket("WATCH", 24, filters)
+        skip_items = self._query_bucket("SKIP", 24, filters)
 
         sections = [
             {
                 "label": "BUILD",
                 "tone": "build",
                 "description": "High-priority opportunities that deserve builder attention.",
-                "count": summary["build_count"],
+                "count": self._count_bucket("BUILD", filters),
                 "items": build_items,
                 "empty_message": "No BUILD opportunities yet.",
             },
@@ -320,7 +531,7 @@ class FeedService:
                 "label": "WATCH",
                 "tone": "watch",
                 "description": "Promising ideas worth monitoring until the signal gets stronger.",
-                "count": summary["watch_count"],
+                "count": self._count_bucket("WATCH", filters),
                 "items": watch_items,
                 "empty_message": "No WATCH opportunities yet.",
             },
@@ -328,7 +539,7 @@ class FeedService:
                 "label": "SKIP",
                 "tone": "skip",
                 "description": "Ideas that are likely too weak or too crowded to pursue now.",
-                "count": summary["skip_count"],
+                "count": self._count_bucket("SKIP", filters),
                 "items": skip_items,
                 "empty_message": "No SKIP opportunities yet.",
             },
@@ -384,4 +595,10 @@ class FeedService:
             "sections": sections,
             "hot_topics": hot_topics,
             "visible_rows": visible_rows,
+            "filters": filters,
+            "filter_options": self._get_filter_options(),
+            "filtered_total": sum(
+                section["count"]
+                for section in sections
+            ),
         }
