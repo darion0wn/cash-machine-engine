@@ -65,10 +65,7 @@ class TrendsService:
     def get_trends_data(self, limit: int = 24) -> dict:
         summary = self.dashboard_service.get_summary()
 
-        try:
-            all_trends = self.trend_engine.trends()
-        finally:
-            self.trend_engine.repository.db.conn.close()
+        all_trends = self.trend_engine.trends()
 
         trend_focus = self._decorate_trend(all_trends[0]) if all_trends else None
         trend_cards = [
@@ -152,13 +149,22 @@ class TrendsService:
             },
         ]
 
-        return {
-            "summary": summary,
-            "trend_focus": trend_focus,
-            "trend_metrics": trend_metrics,
-            "trend_cards": trend_cards,
-            "trend_bands": band_sections,
-            "signal_rows": signal_rows,
-            "top_opportunities": self.dashboard_service.get_top_opportunities(limit=6),
-            "recent_analyses": self.dashboard_service.get_recent_analyses(limit=5),
-        }
+        evolution = self.trend_engine.get_evolution(
+            limit=6,
+            history_limit=12,
+        )
+
+        try:
+            return {
+                "summary": summary,
+                "trend_focus": trend_focus,
+                "trend_metrics": trend_metrics,
+                "trend_cards": trend_cards,
+                "trend_bands": band_sections,
+                "signal_rows": signal_rows,
+                "top_opportunities": self.dashboard_service.get_top_opportunities(limit=6),
+                "recent_analyses": self.dashboard_service.get_recent_analyses(limit=5),
+                "evolution": evolution,
+            }
+        finally:
+            self.trend_engine.repository.db.conn.close()

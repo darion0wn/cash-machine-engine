@@ -73,6 +73,32 @@ class Database:
         """)
 
         cursor.execute("""
+        CREATE TABLE IF NOT EXISTS trend_snapshots (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            captured_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            topic TEXT NOT NULL,
+
+            frequency INTEGER NOT NULL DEFAULT 0,
+
+            source_diversity INTEGER NOT NULL DEFAULT 0,
+
+            average_ranking REAL NOT NULL DEFAULT 0,
+
+            average_cash REAL NOT NULL DEFAULT 0,
+
+            trend_score REAL NOT NULL DEFAULT 0
+        )
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_trend_snapshots_topic_time
+        ON trend_snapshots(topic, captured_at)
+        """)
+
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS favorite_opportunities (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,

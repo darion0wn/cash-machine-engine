@@ -306,4 +306,88 @@
     </div>
   </div>
 </div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <h3 class="section-title mb-1">Trend Evolution</h3>
+        <div class="section-subtitle muted">
+          Historical movement captured after successful refreshes.
+        </div>
+      </div>
+
+      {% if evolution.latest_snapshot_at %}
+      <span class="badge rounded-pill text-bg-light">
+        Last snapshot {{ evolution.latest_snapshot_at }}
+      </span>
+      {% endif %}
+    </div>
+
+    {% if evolution.has_history %}
+    <div class="trend-evolution-grid">
+      {% for item in evolution.series %}
+      <div class="trend-evolution-card">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+          <div>
+            <div class="trend-evolution-topic">{{ item.topic }}</div>
+            <div class="trend-evolution-meta">
+              {{ item.snapshot_count }} snapshots · {{ item.frequency }} current mentions
+            </div>
+          </div>
+
+          <div class="topic-score">{{ item.current_score }}</div>
+        </div>
+
+        <div class="trend-evolution-sparkline" aria-label="Trend history for {{ item.topic }}">
+          {% set points = item.points %}
+          {% if points|length >= 2 %}
+            {% for point in points %}
+              <span
+                  class="trend-evolution-point"
+                  data-height="{{ [8, point.trend_score]|max }}"
+                  title="{{ point.captured_at }} · {{ point.trend_score }}"
+              ></span>
+            {% endfor %}
+          {% else %}
+            <span class="trend-evolution-no-history">Collecting history…</span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          {% if item.score_change is not none %}
+            {% if item.score_change > 0 %}
+            <span class="trend-change trend-change-up">↑ {{ "%.1f"|format(item.score_change) }}</span>
+            {% elif item.score_change < 0 %}
+            <span class="trend-change trend-change-down">↓ {{ "%.1f"|format(item.score_change|abs) }}</span>
+            {% else %}
+            <span class="trend-change trend-change-flat">→ 0.0</span>
+            {% endif %}
+          {% else %}
+          <span class="trend-change trend-change-flat">Collecting baseline</span>
+          {% endif %}
+
+          <span class="text-muted small">
+            {{ item.source_diversity }} sources
+          </span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    {{ empty_state(
+      "Trend history is still being collected",
+      "The engine records a new snapshot after each successful refresh. Run the refresh a few times to unlock real topic evolution.",
+      icon="📈",
+      tone="trend",
+      primary_label="Open dashboard",
+      primary_href=url_for('dashboard.index'),
+      secondary_label="Open feed",
+      secondary_href=url_for('pages.feed'),
+      compact=False
+    ) }}
+    {% endif %}
+  </div>
+</div>
+
 {% endblock %}

@@ -139,6 +139,35 @@ class RefreshService:
                 else "Refresh finished with an error."
             )
 
+            if status == "completed":
+                trend_engine = None
+
+                try:
+                    from services.trend_engine import TrendEngine
+
+                    trend_engine = TrendEngine()
+                    snapshot_count = trend_engine.capture_snapshot()
+
+                    if snapshot_count:
+                        message = (
+                            "Refresh completed successfully. "
+                            f"Captured {snapshot_count} topic trend snapshots."
+                        )
+                except Exception as snapshot_error:
+                    # Do not turn a successful crawler/analysis run into a
+                    # failed refresh just because historical trend capture
+                    # could not be persisted.
+                    message = (
+                        "Refresh completed successfully, but trend history "
+                        f"could not be captured: {snapshot_error}"
+                    )
+                finally:
+                    if trend_engine is not None:
+                        try:
+                            trend_engine.repository.db.conn.close()
+                        except Exception:
+                            pass
+
             self._finish_run(
                 run_id,
                 finished_at,
