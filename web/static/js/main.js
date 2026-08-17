@@ -231,6 +231,139 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSearchState();
   }
 
+
+  const refreshTrigger = document.querySelector("[data-refresh-trigger]");
+
+  if (refreshTrigger) {
+    const refreshStartUrl = refreshTrigger.dataset.refreshStartUrl;
+    const refreshStatusUrl = refreshTrigger.dataset.refreshStatusUrl;
+    const loadingSubtitle = document.querySelector(".loading-panel-subtitle");
+    const refreshDefaultText = refreshTrigger.textContent.trim();
+
+    let refreshTimer = null;
+
+    const setRefreshUi = (isRunning) => {
+      refreshTrigger.disabled = isRunning;
+      refreshTrigger.setAttribute("aria-busy", String(isRunning));
+      refreshTrigger.textContent = isRunning ? "Refreshing…" : refreshDefaultText;
+
+      if (loadingSubtitle && isRunning) {
+        loadingSubtitle.textContent =
+          "Refreshing crawler and analysis pipeline…";
+      }
+    };
+
+    const clearRefreshTimer = () => {
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer);
+        refreshTimer = null;
+      }
+    };
+
+    const pollRefreshStatus = async ({ reloadOnComplete = true } = {}) => {
+      try {
+        const response = await fetch(refreshStatusUrl, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Status request failed (${response.status}).`);
+        }
+
+        const status = await response.json();
+
+        if (status.state === "running") {
+          setRefreshUi(true);
+          showLoadingOverlay();
+          refreshTimer = window.setTimeout(
+            () => pollRefreshStatus({ reloadOnComplete }),
+            1200
+          );
+          return;
+        }
+
+        clearRefreshTimer();
+        setRefreshUi(false);
+
+        if (status.state === "completed") {
+          hideLoadingOverlay();
+
+          if (reloadOnComplete) {
+            window.location.reload();
+          }
+
+          return;
+        }
+
+        if (status.state === "failed") {
+          hideLoadingOverlay();
+          window.alert(
+            status.message ||
+              "Refresh failed. Check the terminal output for details."
+          );
+          return;
+        }
+
+        hideLoadingOverlay();
+      } catch (error) {
+        clearRefreshTimer();
+        setRefreshUi(false);
+        hideLoadingOverlay();
+        window.alert(
+          "Unable to check refresh status. Check the web server output."
+        );
+        console.error(error);
+      }
+    };
+
+    refreshTrigger.addEventListener("click", async () => {
+      if (refreshTrigger.disabled) {
+        return;
+      }
+
+      setRefreshUi(true);
+
+      if (loadingSubtitle) {
+        loadingSubtitle.textContent =
+          "Starting crawler and analysis pipeline…";
+      }
+
+      showLoadingOverlay();
+
+      try {
+        const response = await fetch(refreshStartUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (response.status === 409) {
+          await pollRefreshStatus({ reloadOnComplete: true });
+          return;
+        }
+
+        if (!response.ok && response.status !== 202) {
+          throw new Error(`Refresh request failed (${response.status}).`);
+        }
+
+        await pollRefreshStatus({ reloadOnComplete: true });
+      } catch (error) {
+        clearRefreshTimer();
+        setRefreshUi(false);
+        hideLoadingOverlay();
+        window.alert(
+          "Unable to start the refresh. Check the web server output."
+        );
+        console.error(error);
+      }
+    });
+
+    // If another dashboard tab already started a refresh, pick it up.
+    pollRefreshStatus({ reloadOnComplete: false });
+  }
+
   const internalLinks = Array.from(document.querySelectorAll('a[href]'));
 
   internalLinks.forEach((link) => {

@@ -1,6 +1,7 @@
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, abort, jsonify, render_template
 
 from web.services.dashboard_service import DashboardService
+from web.services.refresh_service import refresh_service
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -22,6 +23,33 @@ def index():
         ),
         **dashboard_data,
     )
+
+
+@dashboard_bp.route("/refresh", methods=["POST"])
+def refresh():
+    started = refresh_service.start()
+
+    if not started:
+        return jsonify(
+            {
+                "state": "running",
+                "started": False,
+                "message": "A refresh is already running.",
+            }
+        ), 409
+
+    return jsonify(
+        {
+            "state": "running",
+            "started": True,
+            "message": "Refresh started.",
+        }
+    ), 202
+
+
+@dashboard_bp.route("/refresh/status")
+def refresh_status():
+    return jsonify(refresh_service.get_status())
 
 
 @dashboard_bp.route("/opportunities/<int:opportunity_id>")
