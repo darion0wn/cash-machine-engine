@@ -4,6 +4,9 @@ from services.report_context_builder import ReportContextBuilder
 from services.template_engine import TemplateEngine
 
 
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+
 class MarkdownReportWriter:
 
     def __init__(self):
@@ -22,7 +25,7 @@ class MarkdownReportWriter:
             context,
         )
 
-        output_dir = Path("reports/markdown")
+        output_dir = ROOT_DIR / "reports" / "markdown"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         output_file = output_dir / f"{analysis.opportunity_id}.md"

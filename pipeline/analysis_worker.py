@@ -29,7 +29,7 @@ class AnalysisWorker:
 
             print("[INFO] No pending opportunities.")
 
-            return False
+            return None
 
         print(
             f"[INFO] Processing: {opportunity.title}"

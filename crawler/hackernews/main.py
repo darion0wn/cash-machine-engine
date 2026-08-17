@@ -95,5 +95,8 @@ def main():
     Logger.info(f"Failed  : {failed}")
 
 
+    return failed == 0
+
+
 if __name__ == "__main__":
     main()

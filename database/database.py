@@ -1,7 +1,14 @@
+import os
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("database/opportunities.db")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = Path(
+    os.getenv(
+        "CASH_MACHINE_DB_PATH",
+        ROOT_DIR / "database" / "opportunities.db",
+    )
+).resolve()
 
 
 class Database:

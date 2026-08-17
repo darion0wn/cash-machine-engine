@@ -6,50 +6,41 @@ from pipeline.main import main as pipeline_main
 
 
 def run_step(name, func):
-
     print(f"\n{name}\n")
 
     try:
+        result = func()
+        if result is False:
+            print(f"[ERROR] {name} failed")
+            return False
+        return True
 
-        func()
-
-    except Exception as e:
-
+    except Exception as exc:
         print(f"[ERROR] {name} failed")
-
-        print(e)
+        print(exc)
+        return False
 
 
 def main():
-
     print("\n" + "=" * 80)
     print(" CASH MACHINE ENGINE ")
     print("=" * 80)
 
-    run_step(
-        "[1/4] Hacker News",
-        hackernews_main,
-    )
+    results = [
+        run_step("[1/4] Hacker News", hackernews_main),
+        run_step("[2/4] GitHub", github_main),
+        run_step("[3/4] Product Hunt", producthunt_main),
+        run_step("[4/4] Analysis Worker", pipeline_main),
+    ]
 
-    run_step(
-        "[2/4] GitHub",
-        github_main,
-    )
-
-    run_step(
-        "[3/4] Product Hunt",
-        producthunt_main,
-    )
-
-    run_step(
-        "[4/4] Analysis Worker",
-        pipeline_main,
-    )
+    success = all(results)
 
     print("\n" + "=" * 80)
-    print(" COMPLETED ")
+    print(" COMPLETED " if success else " COMPLETED WITH ERRORS ")
     print("=" * 80)
+
+    return 0 if success else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

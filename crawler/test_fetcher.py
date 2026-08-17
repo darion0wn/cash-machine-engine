@@ -1,13 +1,24 @@
-from crawler.page_fetcher import PageFetcher
-from crawler.text_extractor import TextExtractor
+"""Manual page extraction check.
 
-url = "https://infrawrench.com"
+Run explicitly with:
+    python crawler/test_fetcher.py
+"""
 
-fetcher = PageFetcher()
-html = fetcher.fetch(url)
 
-extractor = TextExtractor()
+def main() -> None:
+    from crawler.page_fetcher import PageFetcher
+    from crawler.text_extractor import TextExtractor
 
-text = extractor.extract(html)
+    url = "https://infrawrench.com"
 
-print(text[:3000])
+    fetcher = PageFetcher()
+    html = fetcher.fetch(url)
+
+    extractor = TextExtractor()
+    text = extractor.extract(html)
+
+    print(text[:3000])
+
+
+if __name__ == "__main__":
+    main()

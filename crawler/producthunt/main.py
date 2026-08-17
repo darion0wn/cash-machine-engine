@@ -117,5 +117,8 @@ def main():
     print(f"[INFO] Failed  : {failed}")
 
 
+    return failed == 0
+
+
 if __name__ == "__main__":
     main()

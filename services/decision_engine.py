@@ -7,42 +7,42 @@ from typing import Any
 
 class DecisionEngine:
     """
-    Deterministic decision layer focused on the private €500/month target.
+    Deterministic founder-oriented decision layer focused on the private
+    €500/month target.
 
-    It does not overwrite the existing AI/ranking verdict. It adds a second,
-    founder-oriented interpretation based only on fields already present in
-    the analysis.
+    It does not overwrite the existing AI/ranking verdict. It adds a second
+    decision layer using only fields already present in an analysis.
     """
 
     TARGET_MRR = 500.0
 
     _MONTHLY_PATTERNS = (
         re.compile(
-            r"(?i)(?:€|eur\s*)\s*(\d+(?:[.,]\d+)?)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)(?:€|eur\s*)(\d+(?:[.,]\d+)?)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
         re.compile(
-            r"(?i)(?:\$|usd\s*)\s*(\d+(?:[.,]\d+)?)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)(?:\$|usd\s*)(\d+(?:[.,]\d+)?)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
         re.compile(
-            r"(?i)(?:£|gbp\s*)\s*(\d+(?:[.,]\d+)?)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)(?:£|gbp\s*)(\d+(?:[.,]\d+)?)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
         re.compile(
-            r"(?i)\b(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)\b(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
         re.compile(
-            r"(?i)\b(\d+(?:[.,]\d+)?)\s*(?:\$|usd|£|gbp)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)\b(\d+(?:[.,]\d+)?)\s*(?:\$|usd|£|gbp)\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
     )
 
     _RANGE_PATTERNS = (
         re.compile(
-            r"(?i)(?:€|eur\s*)\s*(\d+(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur)?\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)(?:€|eur\s*)(\d+(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur)?\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
         re.compile(
-            r"(?i)(?:\$|usd\s*)\s*(\d+(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?)\s*(?:\$|usd)?\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)(?:\$|usd\s*)(\d+(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?)\s*(?:\$|usd)?\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
         re.compile(
-            r"(?i)(?:£|gbp\s*)\s*(\d+(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?)\s*(?:£|gbp)?\s*(?:/|per\s+)?(?:mo(?:nth)?|month)",
+            r"(?i)(?:£|gbp\s*)(\d+(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?)\s*(?:£|gbp)?\s*(?:/|per\s+)?(?:mo(?:nth)?|month)"
         ),
     )
 
@@ -54,7 +54,10 @@ class DecisionEngine:
             return default
 
     @classmethod
-    def _extract_monthly_price(cls, pricing_strategy: str | None) -> dict[str, Any]:
+    def _extract_monthly_price(
+        cls,
+        pricing_strategy: str | None,
+    ) -> dict[str, Any]:
         text = (pricing_strategy or "").strip()
 
         if not text:
@@ -102,12 +105,16 @@ class DecisionEngine:
     @staticmethod
     def _currency_from_text(text: str) -> str:
         lowered = text.lower()
+
         if "€" in text or "eur" in lowered:
             return "EUR"
+
         if "$" in text or "usd" in lowered:
             return "USD"
+
         if "£" in text or "gbp" in lowered:
             return "GBP"
+
         return ""
 
     @staticmethod
@@ -115,6 +122,7 @@ class DecisionEngine:
         problem = DecisionEngine._number(analysis.get("problem_score"))
         market = DecisionEngine._number(analysis.get("market_score"))
         business = DecisionEngine._number(analysis.get("business_score"))
+
         execution_difficulty = DecisionEngine._number(
             analysis.get("implementation_difficulty")
         )
@@ -149,6 +157,7 @@ class DecisionEngine:
                 "decision_label": "NO DATA",
                 "five_hundred_path": "No analysis available yet.",
                 "pricing_known": False,
+                "pricing_currency": None,
                 "monthly_price_low": None,
                 "monthly_price_high": None,
                 "customers_required": None,
@@ -157,6 +166,7 @@ class DecisionEngine:
                 "potential": "Unknown",
                 "confidence": "Low",
                 "reasoning": "A decision assessment requires a completed analysis.",
+                "next_action": "Complete an opportunity analysis first.",
             }
 
         pricing = cls._extract_monthly_price(
@@ -170,22 +180,23 @@ class DecisionEngine:
             or "WATCH"
         ).upper()
 
-        if pricing["known"]:
+        target_path_known = (
+            pricing["known"] and pricing["currency"] == "EUR"
+        )
+
+        if target_path_known:
             customers_required = int(
                 math.ceil(cls.TARGET_MRR / pricing["low"])
             )
+
             if pricing["low"] >= cls.TARGET_MRR:
                 customers_required = 1
 
             if pricing["low"] == pricing["high"]:
-                price_label = (
-                    f"{pricing['currency'] or 'currency'} "
-                    f"{pricing['low']:g}/month"
-                )
+                price_label = f"€{pricing['low']:g}/month"
             else:
                 price_label = (
-                    f"{pricing['currency'] or 'currency'} "
-                    f"{pricing['low']:g}–{pricing['high']:g}/month"
+                    f"€{pricing['low']:g}–€{pricing['high']:g}/month"
                 )
 
             path = (
@@ -193,6 +204,15 @@ class DecisionEngine:
                 f"customer{'s' if customers_required != 1 else ''} "
                 f"for €{int(cls.TARGET_MRR)}/month target"
             )
+
+        elif pricing["known"] and pricing["currency"] in {"USD", "GBP"}:
+            customers_required = None
+            path = (
+                f"Pricing evidence is available in {pricing['currency']}, "
+                "but an exact €500/month customer path requires an FX rate "
+                "that the engine does not currently maintain."
+            )
+
         else:
             customers_required = None
             path = (
@@ -200,7 +220,11 @@ class DecisionEngine:
                 "to calculate a reliable €500/month customer path."
             )
 
-        if score >= 75 and pricing["known"] and customers_required <= 25:
+        if (
+            score >= 75
+            and target_path_known
+            and customers_required <= 25
+        ):
             potential = "HIGH"
         elif score >= 60 or pricing["known"]:
             potential = "MEDIUM"
@@ -219,14 +243,27 @@ class DecisionEngine:
             f"Existing portfolio status: {status}.",
         ]
 
-        if pricing["known"]:
+        if target_path_known:
             reasons.append(
-                f"Pricing evidence supports a concrete customer-count path."
+                "EUR pricing evidence supports a concrete customer-count path."
+            )
+        elif pricing["known"]:
+            reasons.append(
+                "Pricing is known, but a cross-currency €500 path is not "
+                "calculated without an explicit FX source."
             )
         else:
             reasons.append(
-                "Pricing evidence is insufficient, so monetization still needs validation."
+                "Pricing evidence is insufficient, so monetization still "
+                "needs validation."
             )
+
+        if target_path_known and score >= 75:
+            confidence = "High"
+        elif score >= 60 or pricing["known"]:
+            confidence = "Medium"
+        else:
+            confidence = "Low"
 
         return {
             "target_mrr": cls.TARGET_MRR,
@@ -234,9 +271,9 @@ class DecisionEngine:
             "decision_label": label,
             "five_hundred_path": path,
             "pricing_known": pricing["known"],
+            "pricing_currency": pricing["currency"],
             "monthly_price_low": pricing["low"],
             "monthly_price_high": pricing["high"],
-            "pricing_currency": pricing["currency"],
             "customers_required": customers_required,
             "customers_required_label": (
                 str(customers_required)
@@ -245,13 +282,7 @@ class DecisionEngine:
             ),
             "pricing_evidence": pricing["source"],
             "potential": potential,
-            "confidence": (
-                "High"
-                if pricing["known"] and score >= 75
-                else "Medium"
-                if score >= 60 or pricing["known"]
-                else "Low"
-            ),
+            "confidence": confidence,
             "reasoning": " ".join(reasons),
             "next_action": (
                 analysis.get("next_action")

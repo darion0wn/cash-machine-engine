@@ -176,6 +176,11 @@ class SchedulerService:
         if now < scheduled_at:
             return False
 
+        # Only one scheduled attempt per calendar day. This prevents a failed
+        # scheduled refresh from being retried on every polling interval.
+        if self._get_scheduled_run_today(now.date()) is not None:
+            return False
+
         if self._get_successful_or_running_refresh_today(now.date()) is not None:
             return False
 

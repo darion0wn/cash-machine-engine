@@ -3,14 +3,18 @@ from pipeline.analysis_worker import AnalysisWorker
 
 
 def main():
-
     worker = AnalysisWorker()
-
     processed = 0
+    failed = False
 
     while processed < MAX_ANALYSIS_PER_RUN:
+        result = worker.run_once()
 
-        if not worker.run_once():
+        if result is None:
+            break
+
+        if result is False:
+            failed = True
             break
 
         processed += 1
@@ -20,6 +24,8 @@ def main():
     print(f"Processed: {processed}")
     print("=" * 80)
 
+    return not failed
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(0 if main() else 1)
