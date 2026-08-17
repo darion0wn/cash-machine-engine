@@ -529,12 +529,16 @@ class DashboardService:
                 a.trend_score,
                 a.ranking_score,
                 a.portfolio_status,
-                a.created_at AS analysis_created_at
+                a.created_at AS analysis_created_at,
+                CASE WHEN f.id IS NULL THEN 0 ELSE 1 END AS is_favorite
 
             FROM opportunities o
 
             LEFT JOIN analyses a
               ON a.opportunity_id = o.id
+
+            LEFT JOIN favorite_opportunities f
+              ON f.opportunity_id = o.id
 
             WHERE o.id = ?
 
@@ -585,6 +589,7 @@ class DashboardService:
                 merged_topics,
                 "Unknown",
             ),
+            "is_favorite": bool(row.get("is_favorite")),
         }
 
         analysis = None

@@ -376,10 +376,13 @@ class FeedService:
                 a.trend_score,
                 a.portfolio_status,
                 a.build_verdict,
-                a.created_at AS analysis_created_at
+                a.created_at AS analysis_created_at,
+                CASE WHEN f.id IS NULL THEN 0 ELSE 1 END AS is_favorite
             FROM analyses a
             JOIN opportunities o
               ON o.id = a.opportunity_id
+            LEFT JOIN favorite_opportunities f
+              ON f.opportunity_id = a.opportunity_id
             WHERE {where_sql}
             ORDER BY {order_sql}
             LIMIT ?
@@ -435,6 +438,7 @@ class FeedService:
                     "status_badge": self._status_badge(
                         row.get("portfolio_status")
                     ),
+                    "is_favorite": bool(row.get("is_favorite")),
                 }
             )
 

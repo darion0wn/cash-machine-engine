@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, url_for
+from flask import Blueprint, jsonify, render_template, request, url_for
 
 from web.services.dashboard_service import DashboardService
 from web.services.feed_service import FeedService
+from web.services.favorites_service import FavoritesService
 from web.services.portfolio_service import PortfolioService
 from web.services.reports_service import ReportsService
 from web.services.trends_service import TrendsService
@@ -258,6 +259,43 @@ def demo():
         demo_metrics=demo_metrics,
         sample_opportunity=sample_opportunity,
         sample_opportunity_href=sample_opportunity_href,
+    )
+
+
+@pages_bp.route("/my-opportunities")
+def my_opportunities():
+    service = FavoritesService()
+    data = service.get_my_opportunities()
+
+    return render_template(
+        "my_opportunities.html",
+        active_page="favorites",
+        page_title="My Opportunities",
+        page_description=(
+            "Private shortlist of opportunities worth keeping under observation."
+        ),
+        **data,
+    )
+
+
+@pages_bp.route("/favorites/<int:opportunity_id>/toggle", methods=["POST"])
+def toggle_favorite(opportunity_id: int):
+    payload = request.get_json(silent=True) or {}
+
+    service = FavoritesService()
+    is_favorite = service.toggle(
+        opportunity_id=opportunity_id,
+        cash_machine_score=int(payload.get("cash_machine_score", 0) or 0),
+        ranking_score=int(payload.get("ranking_score", 0) or 0),
+        portfolio_status=payload.get("portfolio_status"),
+    )
+
+    return jsonify(
+        {
+            "favorite": is_favorite,
+            "count": service.get_count(),
+            "opportunity_id": opportunity_id,
+        }
     )
 
 

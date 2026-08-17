@@ -3555,3 +3555,140 @@ body {
     width: 100%;
   }
 }
+
+
+/* -------------------------------------------------------------------------
+   Favorites / My Opportunities
+   ------------------------------------------------------------------------- */
+
+.favorite-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 40px;
+  min-height: 38px;
+  padding: 7px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 12px;
+  background: #fff;
+  color: #94a3b8;
+  font-size: 17px;
+  line-height: 1;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.favorite-button:hover {
+  color: #d97706;
+  border-color: rgba(217, 119, 6, 0.35);
+  background: #fffaf0;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.favorite-button.is-favorite {
+  color: #d97706;
+  border-color: rgba(217, 119, 6, 0.35);
+  background: #fff7e8;
+}
+
+.favorite-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 2px;
+}
+
+.favorite-button-lg {
+  min-height: 42px;
+  padding: 9px 14px;
+  font-size: 16px;
+}
+
+.favorite-opportunity-card {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.favorite-opportunity-title {
+  display: inline-block;
+  color: var(--cm-text);
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.favorite-opportunity-title:hover {
+  color: var(--cm-accent);
+}
+
+.favorite-opportunity-meta {
+  margin-top: 7px;
+  color: var(--cm-muted);
+  font-size: 0.85rem;
+}
+
+.favorite-metric {
+  height: 100%;
+  padding: 14px 15px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.favorite-metric-label,
+.favorite-detail-label {
+  color: var(--cm-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.favorite-metric-value {
+  margin-top: 4px;
+  color: var(--cm-text);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.favorite-detail-block {
+  height: 100%;
+  padding: 14px 15px;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.favorite-risk-block {
+  background: #fff8f7;
+}
+
+.favorite-detail-text {
+  margin-top: 6px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.favorite-opportunity-card [data-favorite-button].is-saving {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@media (max-width: 767.98px) {
+  .favorite-button-label {
+    display: none;
+  }
+
+  .favorite-button-lg .favorite-button-label {
+    display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .favorite-button {
+    transition: none;
+  }
+}

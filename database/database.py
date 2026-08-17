@@ -73,6 +73,27 @@ class Database:
         """)
 
         cursor.execute("""
+        CREATE TABLE IF NOT EXISTS favorite_opportunities (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            opportunity_id INTEGER NOT NULL UNIQUE,
+
+            saved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            cash_machine_score_at_save INTEGER DEFAULT 0,
+
+            ranking_score_at_save INTEGER DEFAULT 0,
+
+            portfolio_status_at_save TEXT,
+
+            FOREIGN KEY (opportunity_id)
+                REFERENCES opportunities(id)
+                ON DELETE CASCADE
+        )
+        """)
+
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS analyses (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,

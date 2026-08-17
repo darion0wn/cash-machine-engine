@@ -153,6 +153,12 @@
             Portfolio
           </a>
           <a
+            class="nav-link {% if active_page == 'favorites' %}active{% endif %}"
+            href="{{ url_for('pages.my_opportunities') }}"
+          >
+            My Opportunities
+          </a>
+          <a
             class="nav-link {% if active_page == 'reports' %}active{% endif %}"
             href="{{ url_for('pages.reports') }}"
           >

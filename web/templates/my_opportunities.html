@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Private shortlist</div>
+    <h1 class="page-title mb-1">My Opportunities</h1>
+    <p class="page-subtitle mb-0">
+      Ideas we deliberately chose to keep under observation while the signal evolves.
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-start">
+    <a class="btn btn-primary" href="{{ url_for('pages.feed') }}">Open feed</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('pages.portfolio') }}">Open portfolio</a>
+  </div>
+</div>
+
+<div class="hero hero-compact card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-4 align-items-start">
+      <div class="hero-copy">
+        <div class="hero-kicker">Founder watchlist</div>
+        <h2 class="hero-title mb-2">Keep the ideas that are worth another look.</h2>
+        <p class="hero-text mb-0">
+          Favorites stay visible here even as the global feed changes. Current scores
+          are shown alongside the scores captured when you saved the opportunity.
+        </p>
+      </div>
+
+      <div class="hero-meta hero-meta-panel">
+        <div class="hero-meta-label">Saved opportunities</div>
+        <div class="hero-meta-value">{{ metrics.total }}</div>
+        <div class="hero-meta-badges">
+          <span class="badge rounded-pill text-bg-light">{{ metrics.build }} BUILD</span>
+          <span class="badge rounded-pill text-bg-light">{{ metrics.watch }} WATCH</span>
+          <span class="badge rounded-pill text-bg-light">{{ metrics.skip }} SKIP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if items %}
+<div class="row g-4">
+  {% for item in items %}
+  <div class="col-12">
+    <article class="card favorite-opportunity-card">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+          <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+              <span class="rank-pill">#{{ item.ranking_score }}</span>
+              <span class="status-pill status-{{ item.portfolio_status|lower }}">
+                {{ item.portfolio_status }}
+              </span>
+              <span class="topic-pill">{{ item.primary_topic }}</span>
+            </div>
+
+            <a
+              class="favorite-opportunity-title"
+              href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+            >
+              {{ item.title }}
+            </a>
+
+            <div class="favorite-opportunity-meta">
+              {{ item.source }} · Saved {{ item.saved_at }} · Current analysis {{ item.analysis_created_at }}
+            </div>
+          </div>
+
+          <button
+            class="favorite-button favorite-button-lg is-favorite"
+            type="button"
+            data-favorite-button
+            data-opportunity-id="{{ item.opportunity_id }}"
+            data-cash-score="{{ item.cash_machine_score }}"
+            data-ranking-score="{{ item.ranking_score }}"
+            data-portfolio-status="{{ item.portfolio_status }}"
+            aria-pressed="true"
+            aria-label="Remove from My Opportunities"
+            title="Remove from My Opportunities"
+          >
+            ★ <span class="favorite-button-label">Saved</span>
+          </button>
+        </div>
+
+        <div class="row g-3 mt-2">
+          <div class="col-6 col-md-3">
+            <div class="favorite-metric">
+              <div class="favorite-metric-label">Current Cash</div>
+              <div class="favorite-metric-value">{{ item.cash_machine_score }}</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="favorite-metric">
+              <div class="favorite-metric-label">Saved Cash</div>
+              <div class="favorite-metric-value">{{ item.cash_at_save }}</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="favorite-metric">
+              <div class="favorite-metric-label">Current Rank</div>
+              <div class="favorite-metric-value">{{ item.ranking_score }}</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="favorite-metric">
+              <div class="favorite-metric-label">Saved Rank</div>
+              <div class="favorite-metric-value">{{ item.rank_at_save }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4 mt-1">
+          <div class="col-lg-7">
+            <div class="favorite-detail-block">
+              <div class="favorite-detail-label">Next Action</div>
+              <div class="favorite-detail-text">{{ item.next_action }}</div>
+            </div>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="favorite-detail-block favorite-risk-block">
+              <div class="favorite-detail-label">Biggest Risk</div>
+              <div class="favorite-detail-text">{{ item.biggest_risk }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4">
+          <div class="d-flex flex-wrap gap-2">
+            {% for topic in item.topics[:5] %}
+            <span class="topic-pill">{{ topic }}</span>
+            {% endfor %}
+          </div>
+
+          <a
+            class="btn btn-sm btn-outline-primary"
+            href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}"
+          >
+            Open opportunity
+          </a>
+        </div>
+      </div>
+    </article>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+{{ empty_state(
+  "No saved opportunities yet",
+  "Use the star in Feed or on an Opportunity Detail page to keep a promising idea in your private shortlist.",
+  icon="⭐",
+  tone="trend",
+  primary_label="Open feed",
+  primary_href=url_for('pages.feed'),
+  secondary_label="Open trends",
+  secondary_href=url_for('pages.trends'),
+  compact=False
+) }}
+{% endif %}
+{% endblock %}

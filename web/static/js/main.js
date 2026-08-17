@@ -511,6 +511,97 @@ document.addEventListener("DOMContentLoaded", () => {
     pollRefreshStatus({ reloadOnComplete: false });
   }
 
+
+  const favoriteButtons = Array.from(
+    document.querySelectorAll("[data-favorite-button]")
+  );
+
+  const setFavoriteButtonState = (button, isFavorite) => {
+    button.classList.toggle("is-favorite", isFavorite);
+    button.setAttribute("aria-pressed", isFavorite ? "true" : "false");
+    button.setAttribute(
+      "aria-label",
+      isFavorite
+        ? "Remove from My Opportunities"
+        : "Add to My Opportunities"
+    );
+    button.setAttribute(
+      "title",
+      isFavorite
+        ? "Remove from My Opportunities"
+        : "Add to My Opportunities"
+    );
+
+    const label = button.querySelector(".favorite-button-label");
+    if (label) {
+      label.textContent = isFavorite ? "Saved" : "Save";
+    }
+  };
+
+  favoriteButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (button.classList.contains("is-saving")) {
+        return;
+      }
+
+      const opportunityId = button.dataset.opportunityId;
+      if (!opportunityId) {
+        return;
+      }
+
+      button.classList.add("is-saving");
+
+      try {
+        const response = await fetch(
+          `/favorites/${encodeURIComponent(opportunityId)}/toggle`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              cash_machine_score: Number(button.dataset.cashScore || 0),
+              ranking_score: Number(button.dataset.rankingScore || 0),
+              portfolio_status: button.dataset.portfolioStatus || "WATCH",
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Favorite request failed (${response.status}).`);
+        }
+
+        const payload = await response.json();
+
+        setFavoriteButtonState(button, Boolean(payload.favorite));
+
+        if (
+          document.body.dataset.page === "favorites" &&
+          !payload.favorite
+        ) {
+          const card = button.closest(".favorite-opportunity-card");
+          if (card) {
+            card.remove();
+          }
+
+          const remaining = document.querySelectorAll(
+            ".favorite-opportunity-card"
+          ).length;
+
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error(error);
+        window.alert(
+          "Unable to update My Opportunities. Please try again."
+        );
+      } finally {
+        button.classList.remove("is-saving");
+      }
+    });
+  });
+
   const internalLinks = Array.from(document.querySelectorAll('a[href]'));
 
   internalLinks.forEach((link) => {
