@@ -217,6 +217,122 @@ class DashboardIntelligenceService:
             ),
         }
 
+
+    def _get_decision_mix(self) -> dict[str, Any]:
+        row = self._query_one(
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN portfolio_status = 'BUILD' THEN 1 ELSE 0 END), 0) AS build,
+                COALESCE(SUM(CASE WHEN portfolio_status = 'WATCH' THEN 1 ELSE 0 END), 0) AS watch,
+                COALESCE(SUM(CASE WHEN portfolio_status = 'SKIP' THEN 1 ELSE 0 END), 0) AS skip
+            FROM analyses
+            """
+        ) or {}
+
+        return {
+            "labels": ["BUILD", "WATCH", "SKIP"],
+            "values": [
+                self._safe_int(row.get("build")),
+                self._safe_int(row.get("watch")),
+                self._safe_int(row.get("skip")),
+            ],
+        }
+
+    def _get_cash_distribution(self) -> dict[str, Any]:
+        rows = self._query_all(
+            """
+            SELECT
+                CASE
+                    WHEN cash_machine_score < 20 THEN '0–19'
+                    WHEN cash_machine_score < 40 THEN '20–39'
+                    WHEN cash_machine_score < 60 THEN '40–59'
+                    WHEN cash_machine_score < 80 THEN '60–79'
+                    ELSE '80–100'
+                END AS bucket,
+                COUNT(*) AS count
+            FROM analyses
+            GROUP BY
+                CASE
+                    WHEN cash_machine_score < 20 THEN '0–19'
+                    WHEN cash_machine_score < 40 THEN '20–39'
+                    WHEN cash_machine_score < 60 THEN '40–59'
+                    WHEN cash_machine_score < 80 THEN '60–79'
+                    ELSE '80–100'
+                END
+            """
+        )
+
+        order = ["0–19", "20–39", "40–59", "60–79", "80–100"]
+        counts = {row.get("bucket"): self._safe_int(row.get("count")) for row in rows}
+
+        return {
+            "labels": order,
+            "values": [counts.get(bucket, 0) for bucket in order],
+        }
+
+    def _get_recent_activity(self) -> dict[str, Any]:
+        rows = self._query_all(
+            """
+            SELECT
+                DATE(created_at) AS activity_date,
+                COUNT(*) AS count
+            FROM analyses
+            WHERE created_at >= DATE('now', '-6 day')
+            GROUP BY DATE(created_at)
+            ORDER BY DATE(created_at)
+            """
+        )
+
+        counts = {
+            str(row.get("activity_date")): self._safe_int(row.get("count"))
+            for row in rows
+            if row.get("activity_date")
+        }
+
+        labels = []
+        values = []
+
+        from datetime import timedelta
+
+        today = datetime.utcnow().date()
+
+        for offset in range(6, -1, -1):
+            current = today - timedelta(days=offset)
+            key = current.isoformat()
+            labels.append(current.strftime("%d %b"))
+            values.append(counts.get(key, 0))
+
+        return {
+            "labels": labels,
+            "values": values,
+        }
+
+    def _get_trend_momentum(
+        self,
+        hot_topics: list[dict[str, Any]] | None,
+        limit: int = 8,
+    ) -> dict[str, Any]:
+        topics = (hot_topics or [])[:limit]
+
+        return {
+            "labels": [str(item.get("topic") or "Unknown") for item in topics],
+            "values": [
+                round(float(item.get("trend_score") or 0), 1)
+                for item in topics
+            ],
+        }
+
+    def get_chart_data(
+        self,
+        hot_topics: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "decision_mix": self._get_decision_mix(),
+            "cash_distribution": self._get_cash_distribution(),
+            "trend_momentum": self._get_trend_momentum(hot_topics),
+            "recent_activity": self._get_recent_activity(),
+        }
+
     @staticmethod
     def _build_founder_signal(
         focus: dict[str, Any] | None,
@@ -307,4 +423,5 @@ class DashboardIntelligenceService:
                 new_counts,
                 top_topic,
             ),
+            "charts": self.get_chart_data(hot_topics),
         }

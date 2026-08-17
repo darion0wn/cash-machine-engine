@@ -210,7 +210,78 @@
       </div>
     </div>
   </div>
+
 </div>
+
+<div class="row g-4 mb-4 dashboard-charts-grid">
+  <div class="col-lg-6">
+    <div class="card chart-card h-100">
+      <div class="card-body">
+        <div class="section-header mb-3">
+          <div>
+            <h3 class="section-title mb-1">Decision mix</h3>
+            <div class="section-subtitle muted">How the analysed opportunities are currently classified.</div>
+          </div>
+        </div>
+        <div class="chart-wrapper chart-wrapper-doughnut">
+          <canvas id="dashboard-decision-chart" aria-label="BUILD, WATCH and SKIP distribution"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card chart-card h-100">
+      <div class="card-body">
+        <div class="section-header mb-3">
+          <div>
+            <h3 class="section-title mb-1">Cash score distribution</h3>
+            <div class="section-subtitle muted">Where the current opportunity scores are concentrated.</div>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="dashboard-cash-chart" aria-label="Cash Machine score distribution"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card chart-card h-100">
+      <div class="card-body">
+        <div class="section-header mb-3">
+          <div>
+            <h3 class="section-title mb-1">Trend momentum</h3>
+            <div class="section-subtitle muted">Top normalized topics ranked by current momentum.</div>
+          </div>
+          <a class="section-link" href="{{ url_for('pages.trends') }}">Open trends</a>
+        </div>
+        <div class="chart-wrapper chart-wrapper-trend">
+          <canvas id="dashboard-trend-chart" aria-label="Top trend momentum by topic"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card chart-card h-100">
+      <div class="card-body">
+        <div class="section-header mb-3">
+          <div>
+            <h3 class="section-title mb-1">Recent activity</h3>
+            <div class="section-subtitle muted">AI analyses created during the last seven days.</div>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="dashboard-activity-chart" aria-label="Recent analysis activity"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script type="application/json" id="dashboard-chart-data">{{ dashboard_intelligence.charts|tojson }}</script>
 
 <div class="row g-3 mb-4">
   {% for card in summary_cards %}

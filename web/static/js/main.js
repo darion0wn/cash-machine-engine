@@ -232,6 +232,153 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
+
+  const chartDataElement = document.getElementById("dashboard-chart-data");
+
+  if (chartDataElement && window.Chart) {
+    try {
+      const chartData = JSON.parse(chartDataElement.textContent || "{}");
+
+      const createChart = (canvasId, config) => {
+        const canvas = document.getElementById(canvasId);
+
+        if (!canvas || !config) {
+          return;
+        }
+
+        const labels = Array.isArray(config.labels) ? config.labels : [];
+        const values = Array.isArray(config.values) ? config.values : [];
+
+        if (!labels.length || !values.length) {
+          return;
+        }
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          return;
+        }
+
+        const commonOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: prefersReducedMotion
+            ? false
+            : {
+                duration: 650,
+                easing: "easeOutQuart",
+              },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              callbacks: {
+                label: (tooltipItem) => {
+                  const value = tooltipItem.raw ?? 0;
+                  return ` ${value}`;
+                },
+              },
+            },
+          },
+        };
+
+        return config.type === "doughnut"
+          ? new window.Chart(context, {
+              type: "doughnut",
+              data: {
+                labels,
+                datasets: [
+                  {
+                    data: values,
+                    borderWidth: 0,
+                    hoverOffset: 6,
+                  },
+                ],
+              },
+              options: {
+                ...commonOptions,
+                cutout: "68%",
+                plugins: {
+                  ...commonOptions.plugins,
+                  legend: {
+                    display: true,
+                    position: "bottom",
+                    labels: {
+                      usePointStyle: true,
+                      padding: 18,
+                    },
+                  },
+                },
+              },
+            })
+          : new window.Chart(context, {
+              type: config.type || "bar",
+              data: {
+                labels,
+                datasets: [
+                  {
+                    label: config.label || "",
+                    data: values,
+                    borderWidth: 0,
+                    borderRadius: 8,
+                    tension: 0.35,
+                    fill: config.type === "line",
+                  },
+                ],
+              },
+              options: {
+                ...commonOptions,
+                indexAxis: config.horizontal ? "y" : "x",
+                scales: {
+                  x: {
+                    beginAtZero: true,
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      maxRotation: 0,
+                      autoSkip: config.horizontal ? false : true,
+                    },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: "rgba(148, 163, 184, 0.16)",
+                    },
+                  },
+                },
+              },
+            });
+      };
+
+      createChart("dashboard-decision-chart", {
+        ...chartData.decision_mix,
+        type: "doughnut",
+      });
+
+      createChart("dashboard-cash-chart", {
+        ...chartData.cash_distribution,
+        type: "bar",
+      });
+
+      createChart("dashboard-trend-chart", {
+        ...chartData.trend_momentum,
+        type: "bar",
+        horizontal: true,
+        label: "Momentum",
+      });
+
+      createChart("dashboard-activity-chart", {
+        ...chartData.recent_activity,
+        type: "line",
+        label: "Analyses",
+      });
+    } catch (error) {
+      console.error("Dashboard chart initialization failed.", error);
+    }
+  }
+
   const refreshTrigger = document.querySelector("[data-refresh-trigger]");
 
   if (refreshTrigger) {

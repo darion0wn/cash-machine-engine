@@ -3431,3 +3431,60 @@ body {
     text-align: left;
   }
 }
+
+
+/* -------------------------------------------------------------------------
+   Dashboard charts
+   ------------------------------------------------------------------------- */
+
+.dashboard-charts-grid {
+  align-items: stretch;
+}
+
+.chart-card {
+  min-height: 360px;
+}
+
+.chart-wrapper {
+  position: relative;
+  min-height: 250px;
+}
+
+.chart-wrapper-doughnut {
+  min-height: 280px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.chart-wrapper-trend {
+  min-height: 300px;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 991.98px) {
+  .chart-card {
+    min-height: 320px;
+  }
+
+  .chart-wrapper,
+  .chart-wrapper-doughnut,
+  .chart-wrapper-trend {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .chart-card {
+    min-height: 290px;
+  }
+
+  .chart-wrapper,
+  .chart-wrapper-doughnut,
+  .chart-wrapper-trend {
+    min-height: 220px;
+  }
+}
