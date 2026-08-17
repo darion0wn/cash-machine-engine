@@ -6,6 +6,7 @@ from typing import Any
 
 from database.database import Database
 from services.trend_engine import TrendEngine
+from web.services.dashboard_intelligence_service import DashboardIntelligenceService
 
 
 class DashboardService:
@@ -679,11 +680,16 @@ class DashboardService:
     def get_dashboard_data(self) -> dict:
 
         summary = self.get_summary()
+        hot_topics = self.get_hot_topics(limit=5)
+        intelligence = DashboardIntelligenceService().get_intelligence(
+            hot_topics=hot_topics,
+        )
 
         return {
             "summary": summary,
             "summary_cards": self.get_summary_cards(),
             "top_opportunities": self.get_top_opportunities(limit=10),
-            "hot_topics": self.get_hot_topics(limit=5),
+            "hot_topics": hot_topics,
             "recent_analyses": self.get_recent_analyses(limit=5),
+            "dashboard_intelligence": intelligence,
         }

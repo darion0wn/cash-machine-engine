@@ -56,6 +56,23 @@ class Database:
         """)
 
         cursor.execute("""
+        CREATE TABLE IF NOT EXISTS refresh_runs (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            started_at DATETIME NOT NULL,
+
+            finished_at DATETIME,
+
+            status TEXT NOT NULL DEFAULT 'running',
+
+            return_code INTEGER,
+
+            message TEXT
+        )
+        """)
+
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS analyses (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,

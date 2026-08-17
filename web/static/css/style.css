@@ -3233,3 +3233,201 @@ body {
     padding: 16px;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Dashboard intelligence */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-intelligence-kicker {
+  color: var(--cm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.intelligence-focus-card {
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.03), rgba(255, 255, 255, 1));
+}
+
+.intelligence-focus {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+}
+
+.intelligence-focus-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.intelligence-focus-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.intelligence-focus-source {
+  margin-top: 5px;
+  color: var(--cm-muted);
+  font-size: 0.9rem;
+}
+
+.intelligence-score-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.intelligence-score-row > div {
+  min-width: 92px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.intelligence-score-label {
+  display: block;
+  color: var(--cm-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.intelligence-score-row strong {
+  font-size: 1.2rem;
+}
+
+.intelligence-focus-action {
+  color: var(--cm-text);
+  line-height: 1.55;
+}
+
+.intelligence-focus-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.intelligence-signal-card {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.intelligence-signal-card .section-title,
+.intelligence-signal-card .intelligence-signal-copy {
+  color: #ffffff;
+}
+
+.intelligence-signal-card .dashboard-intelligence-kicker {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.intelligence-signal-copy {
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.intelligence-change-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.intelligence-change {
+  padding: 10px 8px;
+  text-align: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.intelligence-change span {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.intelligence-change strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.1rem;
+}
+
+.intelligence-meta-list {
+  display: grid;
+  gap: 10px;
+}
+
+.intelligence-meta-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.intelligence-meta-list span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.78rem;
+}
+
+.intelligence-meta-list strong {
+  text-align: right;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+  .intelligence-focus {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .intelligence-focus-actions {
+    flex: 1 1 auto;
+  }
+
+  .intelligence-focus-actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .intelligence-change-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .intelligence-focus-title {
+    font-size: 1.25rem;
+  }
+
+  .intelligence-meta-list > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .intelligence-meta-list strong {
+    text-align: left;
+  }
+}

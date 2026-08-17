@@ -87,6 +87,131 @@
   </div>
 </div>
 
+<div class="row g-4 mb-4 dashboard-intelligence-grid">
+  <div class="col-lg-8">
+    <div class="card intelligence-focus-card h-100">
+      <div class="card-body">
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <div class="dashboard-intelligence-kicker">Today's opportunity</div>
+            <h3 class="section-title mb-1">What deserves your attention</h3>
+            <div class="section-subtitle muted">
+              Decision signal generated from the latest completed refresh.
+            </div>
+          </div>
+
+          {% if dashboard_intelligence.focus_opportunity %}
+          <span class="status-pill status-{{ dashboard_intelligence.focus_opportunity.portfolio_status|lower }}">
+            {{ dashboard_intelligence.focus_opportunity.portfolio_status }}
+          </span>
+          {% endif %}
+        </div>
+
+        {% if dashboard_intelligence.focus_opportunity %}
+        <div class="intelligence-focus">
+          <div class="intelligence-focus-main">
+            <div class="intelligence-focus-title">
+              {{ dashboard_intelligence.focus_opportunity.title }}
+            </div>
+            <div class="intelligence-focus-source">
+              {{ dashboard_intelligence.focus_opportunity.source }}
+            </div>
+
+            <div class="intelligence-score-row">
+              <div>
+                <span class="intelligence-score-label">Cash</span>
+                <strong>{{ dashboard_intelligence.focus_opportunity.cash_machine_score }}</strong>
+              </div>
+              <div>
+                <span class="intelligence-score-label">Rank</span>
+                <strong>#{{ dashboard_intelligence.focus_opportunity.ranking_score }}</strong>
+              </div>
+            </div>
+
+            <p class="intelligence-focus-action mb-0">
+              <strong>Next action:</strong>
+              {{ dashboard_intelligence.focus_opportunity.next_action }}
+            </p>
+          </div>
+
+          <div class="intelligence-focus-actions">
+            <a
+              class="btn btn-primary"
+              href="{{ url_for('dashboard.detail', opportunity_id=dashboard_intelligence.focus_opportunity.opportunity_id) }}"
+            >
+              Open opportunity
+            </a>
+            <a class="btn btn-outline-primary" href="{{ url_for('pages.portfolio') }}">
+              Open portfolio
+            </a>
+          </div>
+        </div>
+        {% else %}
+        {{ empty_state(
+          "No ranked opportunity yet",
+          "Run the crawler and analysis worker to generate a founder signal.",
+          icon="🎯",
+          tone="build",
+          primary_label="Open feed",
+          primary_href=url_for('pages.feed'),
+          secondary_label="Refresh",
+          secondary_href=url_for('dashboard.index')
+        ) }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card intelligence-signal-card h-100">
+      <div class="card-body">
+        <div class="dashboard-intelligence-kicker">Founder signal</div>
+        <h3 class="section-title mb-2">What changed</h3>
+
+        <p class="intelligence-signal-copy">
+          {{ dashboard_intelligence.founder_signal }}
+        </p>
+
+        <div class="intelligence-change-grid">
+          <div class="intelligence-change">
+            <span>New</span>
+            <strong>{{ dashboard_intelligence.new_analyses }}</strong>
+          </div>
+          <div class="intelligence-change intelligence-change-build">
+            <span>BUILD</span>
+            <strong>{{ dashboard_intelligence.new_build }}</strong>
+          </div>
+          <div class="intelligence-change intelligence-change-watch">
+            <span>WATCH</span>
+            <strong>{{ dashboard_intelligence.new_watch }}</strong>
+          </div>
+          <div class="intelligence-change intelligence-change-skip">
+            <span>SKIP</span>
+            <strong>{{ dashboard_intelligence.new_skip }}</strong>
+          </div>
+        </div>
+
+        <div class="intelligence-meta-list">
+          <div>
+            <span>Last refresh</span>
+            <strong>{{ dashboard_intelligence.last_refresh }}</strong>
+          </div>
+          <div>
+            <span>Top topic</span>
+            <strong>
+              {% if dashboard_intelligence.top_topic %}
+                {{ dashboard_intelligence.top_topic.topic }}
+              {% else %}
+                Not available
+              {% endif %}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-3 mb-4">
   {% for card in summary_cards %}
   <div class="col-6 col-xl-3">

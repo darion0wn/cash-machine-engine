@@ -6,6 +6,8 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
+from database.database import Database
+
 
 class RefreshService:
     """Runs the existing crawler/pipeline workflow in one background job."""
@@ -25,6 +27,67 @@ class RefreshService:
     def _now() -> str:
         return datetime.now().isoformat(timespec="seconds")
 
+    @staticmethod
+    def _create_run(started_at: str) -> int:
+        db = Database()
+
+        try:
+            cursor = db.conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO refresh_runs (
+                    started_at,
+                    status,
+                    message
+                )
+                VALUES (?, 'running', ?)
+                """,
+                (
+                    started_at,
+                    "Crawler and analysis worker are running.",
+                ),
+            )
+            db.conn.commit()
+            return int(cursor.lastrowid)
+        finally:
+            db.conn.close()
+
+    @staticmethod
+    def _finish_run(
+        run_id: int | None,
+        finished_at: str,
+        status: str,
+        return_code: int | None,
+        message: str,
+    ) -> None:
+        if run_id is None:
+            return
+
+        db = Database()
+
+        try:
+            db.conn.execute(
+                """
+                UPDATE refresh_runs
+                SET
+                    finished_at = ?,
+                    status = ?,
+                    return_code = ?,
+                    message = ?
+                WHERE id = ?
+                """,
+                (
+                    finished_at,
+                    status,
+                    return_code,
+                    message,
+                    run_id,
+                ),
+            )
+            db.conn.commit()
+        finally:
+            db.conn.close()
+
     def get_status(self) -> dict:
         with self._lock:
             return dict(self._status)
@@ -34,16 +97,21 @@ class RefreshService:
             if self._thread and self._thread.is_alive():
                 return False
 
+            started_at = self._now()
+            run_id = self._create_run(started_at)
+
             self._status = {
                 "state": "running",
-                "started_at": self._now(),
+                "started_at": started_at,
                 "finished_at": None,
                 "return_code": None,
                 "message": "Crawler and analysis worker are running.",
+                "run_id": run_id,
             }
 
             self._thread = threading.Thread(
                 target=self._run,
+                args=(run_id,),
                 name="cash-machine-refresh",
                 daemon=True,
             )
@@ -51,7 +119,7 @@ class RefreshService:
 
             return True
 
-    def _run(self) -> None:
+    def _run(self, run_id: int | None) -> None:
         root_dir = Path(__file__).resolve().parents[2]
 
         try:
@@ -61,24 +129,47 @@ class RefreshService:
                 check=False,
             )
 
+            finished_at = self._now()
+            status = (
+                "completed" if completed.returncode == 0 else "failed"
+            )
+            message = (
+                "Refresh completed successfully."
+                if completed.returncode == 0
+                else "Refresh finished with an error."
+            )
+
+            self._finish_run(
+                run_id,
+                finished_at,
+                status,
+                completed.returncode,
+                message,
+            )
+
             with self._lock:
-                self._status["state"] = (
-                    "completed" if completed.returncode == 0 else "failed"
-                )
-                self._status["finished_at"] = self._now()
+                self._status["state"] = status
+                self._status["finished_at"] = finished_at
                 self._status["return_code"] = completed.returncode
-                self._status["message"] = (
-                    "Refresh completed successfully."
-                    if completed.returncode == 0
-                    else "Refresh finished with an error."
-                )
+                self._status["message"] = message
 
         except Exception as exc:
+            finished_at = self._now()
+            message = f"Refresh failed: {exc}"
+
+            self._finish_run(
+                run_id,
+                finished_at,
+                "failed",
+                None,
+                message,
+            )
+
             with self._lock:
                 self._status["state"] = "failed"
-                self._status["finished_at"] = self._now()
+                self._status["finished_at"] = finished_at
                 self._status["return_code"] = None
-                self._status["message"] = f"Refresh failed: {exc}"
+                self._status["message"] = message
 
 
 refresh_service = RefreshService()
