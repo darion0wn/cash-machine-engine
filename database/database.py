@@ -68,7 +68,9 @@ class Database:
 
             return_code INTEGER,
 
-            message TEXT
+            message TEXT,
+
+            trigger TEXT NOT NULL DEFAULT 'manual'
         )
         """)
 
@@ -209,6 +211,26 @@ class Database:
     def migrate(self):
 
         cursor = self.conn.cursor()
+
+        # ---------------------------------------------------------
+        # Refresh runs
+        # ---------------------------------------------------------
+
+        cursor.execute(
+            "PRAGMA table_info(refresh_runs)"
+        )
+
+        refresh_run_columns = {
+            row[1]
+            for row in cursor.fetchall()
+        }
+
+        if "trigger" not in refresh_run_columns:
+
+            cursor.execute(
+                "ALTER TABLE refresh_runs "
+                "ADD COLUMN trigger TEXT NOT NULL DEFAULT 'manual'"
+            )
 
         # ---------------------------------------------------------
         # Opportunities

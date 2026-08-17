@@ -4,8 +4,10 @@ import subprocess
 import sys
 import threading
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
+from config.settings import SCHEDULER_TIMEZONE
 from database.database import Database
 
 
@@ -21,14 +23,22 @@ class RefreshService:
             "finished_at": None,
             "return_code": None,
             "message": "Ready to refresh.",
+            "trigger": None,
         }
 
     @staticmethod
     def _now() -> str:
-        return datetime.now().isoformat(timespec="seconds")
+        try:
+            timezone = ZoneInfo(SCHEDULER_TIMEZONE)
+        except Exception:
+            timezone = ZoneInfo("UTC")
+
+        return datetime.now(timezone).replace(tzinfo=None).isoformat(
+            timespec="seconds"
+        )
 
     @staticmethod
-    def _create_run(started_at: str) -> int:
+    def _create_run(started_at: str, trigger: str) -> int:
         db = Database()
 
         try:
@@ -38,13 +48,15 @@ class RefreshService:
                 INSERT INTO refresh_runs (
                     started_at,
                     status,
-                    message
+                    message,
+                    trigger
                 )
-                VALUES (?, 'running', ?)
+                VALUES (?, 'running', ?, ?)
                 """,
                 (
                     started_at,
                     "Crawler and analysis worker are running.",
+                    trigger,
                 ),
             )
             db.conn.commit()
@@ -92,13 +104,13 @@ class RefreshService:
         with self._lock:
             return dict(self._status)
 
-    def start(self) -> bool:
+    def start(self, trigger: str = "manual") -> bool:
         with self._lock:
             if self._thread and self._thread.is_alive():
                 return False
 
             started_at = self._now()
-            run_id = self._create_run(started_at)
+            run_id = self._create_run(started_at, trigger)
 
             self._status = {
                 "state": "running",
@@ -107,11 +119,12 @@ class RefreshService:
                 "return_code": None,
                 "message": "Crawler and analysis worker are running.",
                 "run_id": run_id,
+                "trigger": trigger,
             }
 
             self._thread = threading.Thread(
                 target=self._run,
-                args=(run_id,),
+                args=(run_id, trigger),
                 name="cash-machine-refresh",
                 daemon=True,
             )
@@ -119,7 +132,7 @@ class RefreshService:
 
             return True
 
-    def _run(self, run_id: int | None) -> None:
+    def _run(self, run_id: int | None, trigger: str) -> None:
         root_dir = Path(__file__).resolve().parents[2]
 
         try:
@@ -181,6 +194,7 @@ class RefreshService:
                 self._status["finished_at"] = finished_at
                 self._status["return_code"] = completed.returncode
                 self._status["message"] = message
+                self._status["trigger"] = trigger
 
         except Exception as exc:
             finished_at = self._now()
@@ -199,6 +213,7 @@ class RefreshService:
                 self._status["finished_at"] = finished_at
                 self._status["return_code"] = None
                 self._status["message"] = message
+                self._status["trigger"] = trigger
 
 
 refresh_service = RefreshService()

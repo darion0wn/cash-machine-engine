@@ -2,6 +2,7 @@ from flask import Blueprint, abort, jsonify, render_template
 
 from web.services.dashboard_service import DashboardService
 from web.services.refresh_service import refresh_service
+from web.services.scheduler_service import scheduler_service
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -49,7 +50,9 @@ def refresh():
 
 @dashboard_bp.route("/refresh/status")
 def refresh_status():
-    return jsonify(refresh_service.get_status())
+    status = refresh_service.get_status()
+    status["scheduler"] = scheduler_service.get_status()
+    return jsonify(status)
 
 
 @dashboard_bp.route("/opportunities/<int:opportunity_id>")

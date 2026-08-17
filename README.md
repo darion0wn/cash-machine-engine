@@ -77,6 +77,24 @@ The web app reads a few optional environment variables:
 - `PORT` — Flask port
 - `FLASK_DEBUG` — set to `1` for debug mode
 
+### Automatic daily refresh
+
+The private Founder Workspace starts an in-process scheduler when the Flask app is running.
+
+Defaults:
+
+- `SCHEDULER_ENABLED = True`
+- `SCHEDULER_TIME = 07:00`
+- `SCHEDULER_TIMEZONE = Europe/Rome`
+- `SCHEDULER_CHECK_SECONDS = 30`
+- `SCHEDULER_CATCH_UP = True`
+
+The scheduler runs at most one automatic refresh per calendar day. If the app starts after the configured time and no successful refresh has happened that day, it performs a catch-up refresh automatically.
+
+A failed scheduled run is not retried repeatedly in a tight loop. A manual refresh remains available from the Dashboard.
+
+The scheduler is intentionally in-process because Cash Machine Engine is currently a private tool. The Python/Flask process must remain running for automatic refreshes to occur.
+
 ## How it works
 
 The pipeline is split into three main layers:

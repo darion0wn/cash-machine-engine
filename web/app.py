@@ -15,6 +15,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from web.routes import register_routes  # noqa: E402
+from web.services.scheduler_service import scheduler_service  # noqa: E402
 
 
 APP_NAME = "Cash Machine Engine"
@@ -57,6 +58,11 @@ def create_app() -> Flask:
     app.config["JSON_SORT_KEYS"] = False
 
     register_routes(app)
+
+    # The scheduler is an in-process background worker. In debug mode,
+    # Werkzeug may spawn a reloader child, so only the serving process starts it.
+    if os.getenv("FLASK_DEBUG", "0") != "1" or os.getenv("WERKZEUG_RUN_MAIN") == "true":
+        scheduler_service.start()
 
     build_date = os.getenv("BUILD_DATE") or date.today().strftime("%d %b %Y")
     app_commit = _resolve_git_commit()
