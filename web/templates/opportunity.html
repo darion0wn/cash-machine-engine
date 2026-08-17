@@ -126,6 +126,46 @@
             {% endfor %}
           </div>
 
+          <div class="decision-engine-card mb-4">
+            <div class="decision-engine-head">
+              <div>
+                <div class="decision-engine-kicker">Founder decision engine</div>
+                <h3 class="section-title mb-1">€500/month path</h3>
+              </div>
+              <span class="status-pill status-{{ detail.analysis.decision.potential|lower }}">
+                {{ detail.analysis.decision.potential }} potential
+              </span>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="decision-metric">
+                  <span>Decision score</span>
+                  <strong>{{ detail.analysis.decision.decision_score }}/100</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="decision-metric">
+                  <span>Customers needed</span>
+                  <strong>{{ detail.analysis.decision.customers_required_label }}</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="decision-metric">
+                  <span>Confidence</span>
+                  <strong>{{ detail.analysis.decision.confidence }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="decision-path mt-3">
+              <strong>{{ detail.analysis.decision.five_hundred_path }}</strong>
+            </div>
+
+            <p class="decision-reasoning mb-2">{{ detail.analysis.decision.reasoning }}</p>
+            <p class="decision-action mb-0"><strong>Decision label:</strong> {{ detail.analysis.decision.decision_label }} · <strong>Next action:</strong> {{ detail.analysis.decision.next_action }}</p>
+          </div>
+
           <div class="mb-4">
             <h3 class="section-subtitle">Problem</h3>
             <p>{{ detail.analysis.problem }}</p>

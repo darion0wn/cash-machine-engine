@@ -3767,3 +3767,128 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Decision Engine v2 */
+.decision-mini-card,
+.decision-engine-card {
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(255,255,255,0.96));
+  border-radius: 18px;
+}
+
+.decision-mini-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem 1.1rem;
+  margin: 1rem 0;
+}
+
+.decision-mini-label,
+.decision-engine-kicker {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.decision-mini-card strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.decision-mini-meta {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.decision-mini-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.decision-engine-card {
+  padding: 1.25rem;
+}
+
+.decision-engine-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.decision-metric {
+  height: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(15,23,42,0.06);
+}
+
+.decision-metric span {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.decision-metric strong {
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.decision-path {
+  padding: 0.95rem 1rem;
+  border-radius: 14px;
+  background: rgba(15,23,42,0.04);
+  color: #0f172a;
+}
+
+.decision-reasoning,
+.decision-action {
+  color: #475569;
+}
+
+.status-high {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-low {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+@media (max-width: 767.98px) {
+  .decision-mini-card,
+  .decision-engine-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .decision-mini-meta {
+    justify-content: flex-start;
+  }
+}

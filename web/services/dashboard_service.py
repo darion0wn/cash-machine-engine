@@ -6,6 +6,7 @@ from typing import Any
 
 from database.database import Database
 from services.trend_engine import TrendEngine
+from services.decision_engine import DecisionEngine
 from web.services.dashboard_intelligence_service import DashboardIntelligenceService
 
 
@@ -666,6 +667,8 @@ class DashboardService:
                     row.get("analysis_created_at")
                 ),
             }
+
+            analysis["decision"] = DecisionEngine.evaluate(analysis)
 
             analysis["score_breakdown"] = [
                 {"label": "Problem", "value": analysis["problem_score"]},

@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any
 
 from database.database import Database
+from services.decision_engine import DecisionEngine
 
 
 class DashboardIntelligenceService:
@@ -181,7 +182,15 @@ class DashboardIntelligenceService:
                 a.ranking_score,
                 a.build_verdict,
                 a.portfolio_status,
-                a.next_action
+                a.next_action,
+                a.problem_score,
+                a.market_score,
+                a.business_score,
+                a.implementation_difficulty,
+                a.competition_level,
+                a.monetization_difficulty,
+                a.distribution_score,
+                a.pricing_strategy
             FROM analyses a
             JOIN opportunities o
               ON o.id = a.opportunity_id
@@ -201,7 +210,7 @@ class DashboardIntelligenceService:
         if row is None:
             return None
 
-        return {
+        focus = {
             "opportunity_id": self._safe_int(row.get("opportunity_id")),
             "title": row.get("title") or "Untitled opportunity",
             "source": row.get("source") or "Unknown source",
@@ -215,7 +224,17 @@ class DashboardIntelligenceService:
                 row.get("next_action")
                 or "Open the opportunity and validate the signal."
             ),
+            "problem_score": self._safe_int(row.get("problem_score")),
+            "market_score": self._safe_int(row.get("market_score")),
+            "business_score": self._safe_int(row.get("business_score")),
+            "implementation_difficulty": self._safe_int(row.get("implementation_difficulty")),
+            "competition_level": self._safe_int(row.get("competition_level")),
+            "monetization_difficulty": self._safe_int(row.get("monetization_difficulty")),
+            "distribution_score": self._safe_int(row.get("distribution_score")),
+            "pricing_strategy": row.get("pricing_strategy") or "",
         }
+        focus["decision"] = DecisionEngine.evaluate(focus)
+        return focus
 
 
     def _get_decision_mix(self) -> dict[str, Any]:
