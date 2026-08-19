@@ -129,6 +129,59 @@ class Database:
         """)
 
         cursor.execute("""
+        CREATE TABLE IF NOT EXISTS validation_evidence (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            opportunity_id INTEGER NOT NULL,
+            validation_key TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'PARTIAL',
+            observation TEXT NOT NULL,
+            source TEXT,
+            confidence TEXT NOT NULL DEFAULT 'MEDIUM',
+            notes TEXT,
+            captured_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (opportunity_id)
+                REFERENCES opportunities(id)
+                ON DELETE CASCADE
+        )
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_validation_evidence_opportunity
+        ON validation_evidence(opportunity_id, captured_at DESC)
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_validation_evidence_step
+        ON validation_evidence(opportunity_id, validation_key, captured_at DESC)
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS founder_decisions (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            opportunity_id INTEGER NOT NULL,
+            decision TEXT NOT NULL,
+            rationale TEXT NOT NULL,
+            next_action TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'engine',
+            decided_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (opportunity_id)
+                REFERENCES opportunities(id)
+                ON DELETE CASCADE
+        )
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_founder_decisions_opportunity
+        ON founder_decisions(opportunity_id, decided_at DESC, id DESC)
+        """)
+
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS analyses (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,

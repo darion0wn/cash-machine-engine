@@ -6,6 +6,9 @@ from web.services.favorites_service import FavoritesService
 from web.services.portfolio_service import PortfolioService
 from web.services.reports_service import ReportsService
 from web.services.trends_service import TrendsService
+from services.evidence_tracker import EvidenceTracker
+from services.founder_decision import FounderDecision
+from web.services.comparison_service import ComparisonService
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -297,6 +300,99 @@ def toggle_favorite(opportunity_id: int):
             "opportunity_id": opportunity_id,
         }
     )
+
+
+@pages_bp.route("/compare")
+def compare():
+    raw_ids = request.args.getlist("ids")
+    if not raw_ids:
+        raw = request.args.get("ids", "")
+        raw_ids = [item.strip() for item in raw.split(",") if item.strip()]
+
+    service = ComparisonService()
+    try:
+        data = service.get_comparison(raw_ids)
+    finally:
+        service.close()
+
+    dashboard = DashboardService()
+    selector = dashboard.get_top_opportunities(limit=12)
+
+    return render_template(
+        "compare.html",
+        active_page="favorites",
+        page_title="Compare Opportunities",
+        page_description="Compare shortlisted opportunities using validation, evidence and the €500/month path.",
+        selector=selector,
+        **data,
+    )
+
+
+@pages_bp.route("/opportunities/<int:opportunity_id>/evidence", methods=["POST"])
+def add_evidence(opportunity_id: int):
+    payload = request.form if request.form else (request.get_json(silent=True) or {})
+    validation_key = str(payload.get("validation_key", "")).strip()
+    status = str(payload.get("status", "PARTIAL")).strip().upper()
+    observation = str(payload.get("observation", "")).strip()
+    source = str(payload.get("source", "")).strip()
+    confidence = str(payload.get("confidence", "MEDIUM")).strip().upper()
+    notes = str(payload.get("notes", "")).strip()
+
+    if not validation_key or not observation:
+        return jsonify({"ok": False, "error": "Validation step and observation are required."}), 400
+
+    tracker = EvidenceTracker()
+    try:
+        evidence_id = tracker.add(
+            opportunity_id,
+            validation_key=validation_key,
+            status=status,
+            observation=observation,
+            source=source,
+            confidence=confidence,
+            notes=notes,
+        )
+    except ValueError as exc:
+        tracker.close()
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    finally:
+        try:
+            tracker.close()
+        except Exception:
+            pass
+
+    if request.is_json:
+        return jsonify({"ok": True, "evidence_id": evidence_id})
+    return __import__("flask").redirect(url_for("dashboard.detail", opportunity_id=opportunity_id))
+
+
+@pages_bp.route("/opportunities/<int:opportunity_id>/decision", methods=["POST"])
+def save_founder_decision(opportunity_id: int):
+    payload = request.form if request.form else (request.get_json(silent=True) or {})
+    decision = str(payload.get("decision", "WATCH")).strip().upper()
+    rationale = str(payload.get("rationale", "")).strip()
+    next_action = str(payload.get("next_action", "")).strip()
+
+    service = FounderDecision()
+    try:
+        service.save_founder_decision(
+            opportunity_id,
+            decision,
+            rationale,
+            next_action,
+        )
+    except ValueError as exc:
+        service.close()
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    finally:
+        try:
+            service.close()
+        except Exception:
+            pass
+
+    if request.is_json:
+        return jsonify({"ok": True, "decision": decision})
+    return __import__("flask").redirect(url_for("dashboard.detail", opportunity_id=opportunity_id))
 
 
 @pages_bp.route("/settings")

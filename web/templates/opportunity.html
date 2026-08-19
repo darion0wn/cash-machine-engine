@@ -13,18 +13,18 @@
 
   <div class="d-flex flex-wrap gap-2">
     <button
-      class="favorite-button favorite-button-lg {% if detail.is_favorite %}is-favorite{% endif %}"
+      class="favorite-button favorite-button-lg {% if detail.opportunity.is_favorite %}is-favorite{% endif %}"
       type="button"
       data-favorite-button
       data-opportunity-id="{{ detail.opportunity.id }}"
       data-cash-score="{{ (detail.analysis.cash_machine_score if detail.analysis else 0) }}"
       data-ranking-score="{{ (detail.analysis.ranking_score if detail.analysis else 0) }}"
       data-portfolio-status="{{ (detail.analysis.portfolio_status if detail.analysis else 'WATCH') }}"
-      aria-pressed="{{ 'true' if detail.is_favorite else 'false' }}"
-      aria-label="{{ 'Remove from My Opportunities' if detail.is_favorite else 'Add to My Opportunities' }}"
-      title="{{ 'Remove from My Opportunities' if detail.is_favorite else 'Add to My Opportunities' }}"
+      aria-pressed="{{ 'true' if detail.opportunity.is_favorite else 'false' }}"
+      aria-label="{{ 'Remove from My Opportunities' if detail.opportunity.is_favorite else 'Add to My Opportunities' }}"
+      title="{{ 'Remove from My Opportunities' if detail.opportunity.is_favorite else 'Add to My Opportunities' }}"
     >
-      ★ <span class="favorite-button-label">{{ 'Saved' if detail.is_favorite else 'Save' }}</span>
+      ★ <span class="favorite-button-label">{{ 'Saved' if detail.opportunity.is_favorite else 'Save' }}</span>
     </button>
     <a class="btn btn-outline-secondary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
     {% if detail.opportunity.url %}
@@ -369,6 +369,133 @@
             {% else %}
             <div class="validation-empty">No validation steps are available yet.</div>
             {% endif %}
+          </div>
+
+          <div class="founder-decision-card mb-4">
+            <div class="founder-decision-head">
+              <div>
+                <div class="founder-decision-kicker">Founder decision</div>
+                <h3 class="section-title mb-1">Evidence-backed decision</h3>
+                <p class="founder-decision-summary mb-0">Use collected evidence to move from signal to a real founder decision.</p>
+              </div>
+              <div class="founder-decision-badge founder-decision-{{ detail.analysis.founder_decision.effective_decision|lower }}">
+                {{ detail.analysis.founder_decision.effective_decision }}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-md-3"><div class="founder-decision-metric"><span>Validation</span><strong>{{ detail.analysis.founder_decision.validation_score }}/100</strong></div></div>
+              <div class="col-md-3"><div class="founder-decision-metric"><span>Coverage</span><strong>{{ detail.analysis.founder_decision.coverage_score }}%</strong></div></div>
+              <div class="col-md-3"><div class="founder-decision-metric"><span>Evidence PASS</span><strong>{{ detail.analysis.founder_decision.evidence_passed }}</strong></div></div>
+              <div class="col-md-3"><div class="founder-decision-metric"><span>Confidence</span><strong>{{ detail.analysis.founder_decision.confidence }}</strong></div></div>
+            </div>
+
+            <div class="founder-decision-rationale mt-3">
+              <strong>Recommendation:</strong> {{ detail.analysis.founder_decision.engine_rationale }}<br>
+              <strong>Next action:</strong> {{ detail.analysis.founder_decision.next_action }}
+            </div>
+
+            <form method="post" action="{{ url_for('pages.save_founder_decision', opportunity_id=detail.opportunity.id) }}" class="founder-decision-form mt-3">
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <label class="form-label">Founder decision</label>
+                  <select name="decision" class="form-select">
+                    {% for option in ['BUILD', 'VALIDATE', 'WATCH', 'KILL'] %}
+                    <option value="{{ option }}" {% if detail.analysis.founder_decision.effective_decision == option %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-8">
+                  <label class="form-label">Rationale</label>
+                  <input name="rationale" class="form-control" value="{{ detail.analysis.founder_decision.rationale }}" placeholder="Why are we taking this decision?">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Next action</label>
+                  <input name="next_action" class="form-control" value="{{ detail.analysis.founder_decision.next_action }}" placeholder="What should we do next?">
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button class="btn btn-primary" type="submit">Save founder decision</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('pages.compare', ids=detail.opportunity.id) }}">Compare opportunity</a>
+              </div>
+            </form>
+          </div>
+
+          <div class="evidence-tracking-card mb-4">
+            <div class="evidence-tracking-head">
+              <div>
+                <div class="evidence-tracking-kicker">Evidence tracking</div>
+                <h3 class="section-title mb-1">What have we actually learned?</h3>
+                <p class="evidence-tracking-summary mb-0">Founder evidence can override AI inference when we record a real result.</p>
+              </div>
+              <div class="evidence-tracking-count"><strong>{{ detail.analysis.evidence_tracking.total }}</strong><span>records</span></div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-4"><div class="evidence-count evidence-count-pass"><span>PASS</span><strong>{{ detail.analysis.evidence_tracking.passed }}</strong></div></div>
+              <div class="col-4"><div class="evidence-count evidence-count-partial"><span>PARTIAL</span><strong>{{ detail.analysis.evidence_tracking.partial }}</strong></div></div>
+              <div class="col-4"><div class="evidence-count evidence-count-fail"><span>FAIL</span><strong>{{ detail.analysis.evidence_tracking.failed }}</strong></div></div>
+            </div>
+
+            {% if detail.analysis.evidence_tracking["items"] %}
+            <div class="evidence-list mt-3">
+              {% for item in detail.analysis.evidence_tracking["items"] %}
+              <div class="evidence-record evidence-status-{{ item.status|lower }}">
+                <div class="evidence-record-head">
+                  <strong>{{ item.validation_key.replace('_', ' ').title() }}</strong>
+                  <span>{{ item.status }} · {{ item.confidence }}</span>
+                </div>
+                <p class="mb-1">{{ item.observation }}</p>
+                <small>{{ item.source or 'Founder note' }} · {{ item.captured_at }}</small>
+                {% if item.notes %}<div class="evidence-record-notes">{{ item.notes }}</div>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+              <div class="evidence-empty mt-3">No founder evidence recorded yet. Use the form below after completing a validation test.</div>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('pages.add_evidence', opportunity_id=detail.opportunity.id) }}" class="evidence-form mt-3">
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <label class="form-label">Validation step</label>
+                  <select name="validation_key" class="form-select">
+                    {% for step in detail.analysis.validation_plan.plan %}
+                    <option value="{{ step.key }}">{{ step.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Result</label>
+                  <select name="status" class="form-select">
+                    <option value="PASS">PASS</option>
+                    <option value="PARTIAL">PARTIAL</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Confidence</label>
+                  <select name="confidence" class="form-select">
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM" selected>MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Source</label>
+                  <input name="source" class="form-control" placeholder="Founder interview, landing test, email...">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Observation</label>
+                  <textarea name="observation" class="form-control" rows="2" placeholder="What did we actually observe?"></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Notes</label>
+                  <input name="notes" class="form-control" placeholder="Optional context, quote, link, or follow-up.">
+                </div>
+              </div>
+              <button class="btn btn-outline-primary mt-3" type="submit">Add evidence</button>
+            </form>
           </div>
 
           <div class="mb-4">
