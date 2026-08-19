@@ -81,13 +81,15 @@ The web app reads a few optional environment variables:
 
 The private Founder Workspace starts an in-process scheduler when the Flask app is running.
 
-Defaults:
+Defaults for the local in-process scheduler:
 
 - `SCHEDULER_ENABLED = True`
-- `SCHEDULER_TIME = 07:00`
+- `SCHEDULER_TIMES = 07:00,13:00,19:00`
 - `SCHEDULER_TIMEZONE = Europe/Rome`
 - `SCHEDULER_CHECK_SECONDS = 30`
 - `SCHEDULER_CATCH_UP = True`
+
+In cloud production, the Render Cron schedule is the source of truth; the web process keeps the in-process scheduler disabled.
 
 The scheduler runs at most one automatic refresh per calendar day. If the app starts after the configured time and no successful refresh has happened that day, it performs a catch-up refresh automatically.
 
@@ -103,7 +105,7 @@ The production web service and Cron Job share the same PostgreSQL database.
 
 ## Production deployment
 
-Production is designed as two separate services sharing PostgreSQL:
+Production is designed as two separate services sharing PostgreSQL. The Render Cron Job is the production source of truth for scheduled execution and runs three times per day at `05:00`, `11:00` and `17:00` UTC.
 
 ```text
 Web Service
@@ -159,3 +161,17 @@ The pipeline is split into three main layers:
 ## License
 
 Internal project.
+
+## Autonomous production runtime
+
+The production deployment uses a separate web service, one scheduled refresh job, and managed PostgreSQL. The scheduled job runs the existing refresh pipeline three times per day at `05:00`, `11:00` and `17:00` UTC (approximately `07:00`, `13:00` and `19:00` Europe/Rome during daylight saving time).
+
+The infrastructure is defined in `render.yaml`. The web service disables the in-process scheduler; the Cron service runs:
+
+```bash
+python -m web.services.refresh_service --trigger scheduled
+```
+
+Both services share the same PostgreSQL `DATABASE_URL`, so the refresh continues even when the founder's computer is completely offline.
+
+See `docs/production_runtime.md` for the deployment and migration procedure.

@@ -18,7 +18,7 @@ PROMPT_VERSION = "v3"
 
 MAX_STORIES = 100
 
-MAX_ANALYSIS_PER_RUN = 3
+MAX_ANALYSIS_PER_RUN = 10
 
 # Runtime
 RUNTIME_ROLE = os.getenv("RUNTIME_ROLE", "local").strip().lower()
@@ -29,7 +29,15 @@ SCHEDULER_IN_PROCESS = _env_bool(
 
 # Daily Scheduler
 SCHEDULER_ENABLED = _env_bool("SCHEDULER_ENABLED", True)
-SCHEDULER_TIME = os.getenv("SCHEDULER_TIME", "07:00")
+def _env_times(name: str, default: str) -> list[str]:
+    raw = os.getenv(name, default)
+    return [value.strip() for value in raw.split(",") if value.strip()]
+
+
+SCHEDULER_TIMES = _env_times(
+    "SCHEDULER_TIMES",
+    "07:00,13:00,19:00",
+)
 SCHEDULER_TIMEZONE = os.getenv("SCHEDULER_TIMEZONE", "Europe/Rome")
 SCHEDULER_CHECK_SECONDS = int(os.getenv("SCHEDULER_CHECK_SECONDS", "30"))
 SCHEDULER_CATCH_UP = _env_bool("SCHEDULER_CATCH_UP", True)
