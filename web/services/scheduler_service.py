@@ -129,6 +129,13 @@ class SchedulerService:
     ) -> dict | None:
         db = Database()
 
+        # Compare a full day range instead of applying SQLite's substr() to
+        # a timestamp. PostgreSQL stores started_at as TIMESTAMP, while
+        # SQLite stores it as a DATETIME/text value. Range comparisons work
+        # correctly with both backends and preserve index-friendly filtering.
+        day_start = datetime.combine(target_date, datetime.min.time())
+        day_end = day_start + timedelta(days=1)
+
         try:
             if trigger is None:
                 row = db.conn.execute(
@@ -142,12 +149,13 @@ class SchedulerService:
                         message,
                         trigger
                     FROM refresh_runs
-                    WHERE substr(started_at, 1, 10) = ?
+                    WHERE started_at >= ?
+                      AND started_at < ?
                       AND trigger LIKE 'scheduled:%'
                     ORDER BY id DESC
                     LIMIT 1
                     """,
-                    (target_date.isoformat(),),
+                    (day_start, day_end),
                 ).fetchone()
             else:
                 row = db.conn.execute(
@@ -161,12 +169,13 @@ class SchedulerService:
                         message,
                         trigger
                     FROM refresh_runs
-                    WHERE substr(started_at, 1, 10) = ?
+                    WHERE started_at >= ?
+                      AND started_at < ?
                       AND trigger = ?
                     ORDER BY id DESC
                     LIMIT 1
                     """,
-                    (target_date.isoformat(), trigger),
+                    (day_start, day_end, trigger),
                 ).fetchone()
 
             if row is None:

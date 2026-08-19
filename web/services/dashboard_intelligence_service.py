@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from database.database import Database
@@ -290,16 +290,27 @@ class DashboardIntelligenceService:
         }
 
     def _get_recent_activity(self) -> dict[str, Any]:
+        # Keep the rolling window calculation in Python so the query remains
+        # compatible with both SQLite and PostgreSQL. PostgreSQL does not
+        # support SQLite's DATE('now', '-N day') signature.
+        cutoff = datetime.utcnow().replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        ) - timedelta(days=6)
+
         rows = self._query_all(
             """
             SELECT
                 DATE(created_at) AS activity_date,
                 COUNT(*) AS count
             FROM analyses
-            WHERE created_at >= DATE('now', '-6 day')
+            WHERE created_at >= ?
             GROUP BY DATE(created_at)
             ORDER BY DATE(created_at)
-            """
+            """,
+            (cutoff,),
         )
 
         counts = {
@@ -310,8 +321,6 @@ class DashboardIntelligenceService:
 
         labels = []
         values = []
-
-        from datetime import timedelta
 
         today = datetime.utcnow().date()
 

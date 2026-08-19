@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from database.database import Database
@@ -337,12 +337,20 @@ class FeedService:
             params.append(int(filters["max_rank"]))
 
         if filters.get("date_from"):
-            clauses.append("DATE(a.created_at) >= DATE(?)")
-            params.append(filters["date_from"])
+            date_from = datetime.strptime(
+                filters["date_from"],
+                "%Y-%m-%d",
+            )
+            clauses.append("a.created_at >= ?")
+            params.append(date_from)
 
         if filters.get("date_to"):
-            clauses.append("DATE(a.created_at) <= DATE(?)")
-            params.append(filters["date_to"])
+            date_to_exclusive = datetime.strptime(
+                filters["date_to"],
+                "%Y-%m-%d",
+            ) + timedelta(days=1)
+            clauses.append("a.created_at < ?")
+            params.append(date_to_exclusive)
 
         return clauses, params
 
