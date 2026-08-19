@@ -38,6 +38,11 @@ SCHEDULER_TIMES = _env_times(
     "SCHEDULER_TIMES",
     "07:00,13:00,19:00",
 )
+
+# Backwards-compatible single-time setting for the legacy in-process
+# scheduler. Production scheduling is handled by Railway Cron.
+SCHEDULER_TIME = SCHEDULER_TIMES[0] if SCHEDULER_TIMES else "07:00"
+
 SCHEDULER_TIMEZONE = os.getenv("SCHEDULER_TIMEZONE", "Europe/Rome")
 SCHEDULER_CHECK_SECONDS = int(os.getenv("SCHEDULER_CHECK_SECONDS", "30"))
 SCHEDULER_CATCH_UP = _env_bool("SCHEDULER_CATCH_UP", True)
