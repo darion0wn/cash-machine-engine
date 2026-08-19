@@ -166,6 +166,86 @@
             <p class="decision-action mb-0"><strong>Decision label:</strong> {{ detail.analysis.decision.decision_label }} · <strong>Next action:</strong> {{ detail.analysis.decision.next_action }}</p>
           </div>
 
+          <div class="revenue-simulator-card mb-4">
+            <div class="revenue-simulator-head">
+              <div>
+                <div class="revenue-simulator-kicker">€500/month simulator</div>
+                <h3 class="section-title mb-1">Revenue path</h3>
+                <p class="revenue-simulator-summary mb-0">
+                  Separate the mathematical revenue path from customer-acquisition assumptions.
+                </p>
+              </div>
+              <div class="revenue-simulator-target">
+                <span>Target</span>
+                <strong>€500/mo</strong>
+              </div>
+            </div>
+
+            <div class="revenue-simulator-grid">
+              <div class="revenue-simulator-panel">
+                <div class="revenue-simulator-label">Pricing evidence</div>
+                <div class="revenue-simulator-value">
+                  {% if detail.analysis.revenue_simulation.pricing_known %}
+                    {{ detail.analysis.revenue_simulation.pricing_evidence }}
+                  {% else %}
+                    Unknown
+                  {% endif %}
+                </div>
+                <div class="revenue-simulator-meta">
+                  Currency: {{ detail.analysis.revenue_simulation.pricing_currency or "Unknown" }}
+                </div>
+              </div>
+
+              <div class="revenue-simulator-panel">
+                <div class="revenue-simulator-label">Mathematical path</div>
+                <div class="revenue-simulator-value revenue-simulator-value-wide">
+                  {{ detail.analysis.revenue_simulation.mathematical_path }}
+                </div>
+              </div>
+            </div>
+
+            {% if detail.analysis.revenue_simulation.planning_scenarios %}
+            <div class="revenue-simulator-table-wrap mt-3">
+              <div class="revenue-simulator-label mb-2">Planning scenarios</div>
+              <table class="revenue-simulator-table">
+                <thead>
+                  <tr>
+                    <th>Customers</th>
+                    <th>Revenue / month</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for scenario in detail.analysis.revenue_simulation.planning_scenarios %}
+                  <tr>
+                    <td>{{ scenario.customers }}</td>
+                    <td>{{ scenario.monthly_revenue_label }}</td>
+                    <td>
+                      {% if scenario.target_reached %}
+                        <span class="revenue-scenario-badge revenue-scenario-target">€500 target reached</span>
+                      {% else %}
+                        <span class="revenue-scenario-badge">Planning case</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+
+            <div class="revenue-simulator-readiness mt-3">
+              <div>
+                <strong>{{ detail.analysis.revenue_simulation.readiness }}</strong>
+                <span>{{ detail.analysis.revenue_simulation.readiness_reason }}</span>
+              </div>
+            </div>
+
+            <div class="revenue-simulator-note mt-2">
+              {{ detail.analysis.revenue_simulation.planning_note }}
+            </div>
+          </div>
+
           <div class="validation-framework-card mb-4">
             <div class="validation-framework-head">
               <div>
