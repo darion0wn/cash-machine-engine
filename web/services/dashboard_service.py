@@ -9,6 +9,7 @@ from services.trend_engine import TrendEngine
 from services.decision_engine import DecisionEngine
 from services.validation_framework import OpportunityValidationFramework
 from services.revenue_simulator import RevenueSimulator
+from services.validation_plan import ValidationPlan
 from web.services.dashboard_intelligence_service import DashboardIntelligenceService
 
 
@@ -673,6 +674,7 @@ class DashboardService:
             analysis["decision"] = DecisionEngine.evaluate(analysis)
             analysis["validation"] = OpportunityValidationFramework.evaluate(analysis)
             analysis["revenue_simulation"] = RevenueSimulator.simulate(analysis)
+            analysis["validation_plan"] = ValidationPlan.build(analysis)
 
             analysis["score_breakdown"] = [
                 {"label": "Problem", "value": analysis["problem_score"]},

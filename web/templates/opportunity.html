@@ -314,6 +314,63 @@
             </div>
           </div>
 
+          <div class="validation-plan-card mb-4">
+            <div class="validation-plan-head">
+              <div>
+                <div class="validation-plan-kicker">Validation plan</div>
+                <h3 class="section-title mb-1">Prove it before building</h3>
+                <p class="validation-plan-summary mb-0">{{ detail.analysis.validation_plan.summary }}</p>
+              </div>
+              <div class="validation-plan-score">
+                <span>Plan progress</span>
+                <strong>{{ detail.analysis.validation_plan.completed_steps }}/{{ detail.analysis.validation_plan.total_steps }}</strong>
+                <small>{{ detail.analysis.validation_plan.pending_steps }} pending</small>
+              </div>
+            </div>
+
+            {% if detail.analysis.validation_plan.plan %}
+            <div class="validation-plan-list">
+              {% for step in detail.analysis.validation_plan.plan %}
+              <div class="validation-plan-item">
+                <div class="validation-plan-item-head">
+                  <div>
+                    <span class="validation-priority validation-priority-{{ step.priority|lower }}">{{ step.priority }}</span>
+                    <strong>{{ step.title }}</strong>
+                  </div>
+                  <span class="validation-plan-status">{{ step.status }}</span>
+                </div>
+
+                <div class="validation-plan-grid">
+                  <div>
+                    <span class="validation-plan-label">Goal</span>
+                    <p>{{ step.goal }}</p>
+                  </div>
+                  <div>
+                    <span class="validation-plan-label">Evidence to collect</span>
+                    <p>{{ step.evidence_to_collect }}</p>
+                  </div>
+                  <div>
+                    <span class="validation-plan-label validation-pass-label">Pass</span>
+                    <p>{{ step.pass_criteria }}</p>
+                  </div>
+                  <div>
+                    <span class="validation-plan-label validation-fail-label">Fail</span>
+                    <p>{{ step.fail_criteria }}</p>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="validation-plan-next mt-3">
+              <strong>Next validation action:</strong>
+              {{ detail.analysis.validation_plan.next_step }}
+            </div>
+            {% else %}
+            <div class="validation-empty">No validation steps are available yet.</div>
+            {% endif %}
+          </div>
+
           <div class="mb-4">
             <h3 class="section-subtitle">Problem</h3>
             <p>{{ detail.analysis.problem }}</p>
