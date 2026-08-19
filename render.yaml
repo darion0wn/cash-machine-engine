@@ -1,3 +1,17 @@
+envVarGroups:
+  - name: cash-machine-engine-secrets
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: PRODUCTHUNT_API_KEY
+        sync: false
+      - key: PRODUCTHUNT_API_SECRET
+        sync: false
+
 services:
   - type: web
     name: cash-machine-engine-web
@@ -9,6 +23,7 @@ services:
     healthCheckPath: /health
     autoDeployTrigger: commit
     envVars:
+      - fromGroup: cash-machine-engine-secrets
       - key: RUNTIME_ROLE
         value: web
       - key: SCHEDULER_ENABLED
@@ -21,20 +36,12 @@ services:
         fromDatabase:
           name: cash-machine-engine-db
           property: connectionString
+      - key: MAX_ANALYSIS_PER_RUN
+        value: "10"
       - key: APP_VERSION
         value: "1.0.0"
       - key: FLASK_DEBUG
         value: "0"
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: GITHUB_TOKEN
-        sync: false
-      - key: PRODUCTHUNT_API_KEY
-        sync: false
-      - key: PRODUCTHUNT_API_SECRET
-        sync: false
 
   - type: cron
     name: cash-machine-engine-refresh
@@ -46,6 +53,7 @@ services:
     dockerCommand: python -m web.services.refresh_service --trigger scheduled
     schedule: "0 5,11,17 * * *"
     envVars:
+      - fromGroup: cash-machine-engine-secrets
       - key: RUNTIME_ROLE
         value: worker
       - key: SCHEDULER_ENABLED
@@ -58,16 +66,8 @@ services:
         fromDatabase:
           name: cash-machine-engine-db
           property: connectionString
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: GITHUB_TOKEN
-        sync: false
-      - key: PRODUCTHUNT_API_KEY
-        sync: false
-      - key: PRODUCTHUNT_API_SECRET
-        sync: false
+      - key: MAX_ANALYSIS_PER_RUN
+        value: "10"
 
 databases:
   - name: cash-machine-engine-db

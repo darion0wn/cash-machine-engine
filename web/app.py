@@ -28,7 +28,11 @@ APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
 
 
 def _resolve_git_commit() -> str:
-    override = os.getenv("APP_COMMIT") or os.getenv("GIT_COMMIT")
+    override = (
+        os.getenv("APP_COMMIT")
+        or os.getenv("GIT_COMMIT")
+        or os.getenv("RENDER_GIT_COMMIT")
+    )
     if override:
         return override.strip()[:12]
 
@@ -84,14 +88,29 @@ def create_app() -> Flask:
 
     @app.get("/health")
     def health_check():
+        db_status = "ok"
+        try:
+            from database.database import Database
+
+            db = Database()
+            try:
+                db.conn.execute("SELECT 1")
+            finally:
+                db.conn.close()
+        except Exception:
+            db_status = "error"
+
+        status_code = 200 if db_status == "ok" else 503
+
         return jsonify(
             {
-                "status": "ok",
+                "status": "ok" if db_status == "ok" else "degraded",
                 "service": APP_NAME,
                 "role": RUNTIME_ROLE,
                 "scheduler_in_process": SCHEDULER_IN_PROCESS,
+                "database": db_status,
             }
-        )
+        ), status_code
 
     @app.errorhandler(404)
     def page_not_found(error):

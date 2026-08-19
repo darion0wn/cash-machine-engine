@@ -18,7 +18,7 @@ PROMPT_VERSION = "v3"
 
 MAX_STORIES = 100
 
-MAX_ANALYSIS_PER_RUN = 10
+MAX_ANALYSIS_PER_RUN = int(os.getenv("MAX_ANALYSIS_PER_RUN", "10"))
 
 # Runtime
 RUNTIME_ROLE = os.getenv("RUNTIME_ROLE", "local").strip().lower()

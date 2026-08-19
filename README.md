@@ -175,3 +175,26 @@ python -m web.services.refresh_service --trigger scheduled
 Both services share the same PostgreSQL `DATABASE_URL`, so the refresh continues even when the founder's computer is completely offline.
 
 See `docs/production_runtime.md` for the deployment and migration procedure.
+
+
+## Cloud deployment
+
+Production uses Render with three resources defined in `render.yaml`:
+
+- a Docker-based Web Service running Gunicorn;
+- a Docker-based Cron Job running the existing one-shot refresh command three times per day;
+- a managed PostgreSQL database shared by the two services.
+
+The production analysis cap is controlled by `MAX_ANALYSIS_PER_RUN` and is currently set to `10` per refresh.
+
+Before the first production launch:
+
+1. Push the repository to the `feature/opportunity-intelligence` branch.
+2. Create a Render Blueprint from `render.yaml`.
+3. Populate the shared secret environment group in Render.
+4. Wait for PostgreSQL and the Web Service to become healthy.
+5. Run the one-time SQLite → PostgreSQL migration using the production database connection string.
+6. Trigger one manual Cron run and verify `refresh_runs` and the Dashboard.
+7. Confirm the scheduled runs in the Cron logs.
+
+The application does not run the in-process scheduler in production. Render Cron is the production scheduler.
