@@ -42,8 +42,7 @@ class RefreshService:
         db = Database()
 
         try:
-            cursor = db.conn.cursor()
-            cursor.execute(
+            return db.insert_returning_id(
                 """
                 INSERT INTO refresh_runs (
                     started_at,
@@ -59,8 +58,6 @@ class RefreshService:
                     trigger,
                 ),
             )
-            db.conn.commit()
-            return int(cursor.lastrowid)
         finally:
             db.conn.close()
 
@@ -99,6 +96,103 @@ class RefreshService:
             db.conn.commit()
         finally:
             db.conn.close()
+
+    def run_once(self, trigger: str = "manual") -> int:
+        """Run the refresh synchronously for cron/one-shot workers.
+
+        Returns the subprocess return code and persists the same refresh
+        lifecycle used by the web-triggered background refresh.
+        """
+        with self._lock:
+            if self._thread and self._thread.is_alive():
+                return 2
+
+            started_at = self._now()
+            run_id = self._create_run(started_at, trigger)
+
+        root_dir = Path(__file__).resolve().parents[2]
+
+        try:
+            completed = subprocess.run(
+                [sys.executable, "-m", "crawler.main"],
+                cwd=str(root_dir),
+                check=False,
+            )
+
+            finished_at = self._now()
+            status = "completed" if completed.returncode == 0 else "failed"
+            message = (
+                "Refresh completed successfully."
+                if status == "completed"
+                else "Refresh finished with an error."
+            )
+
+            if status == "completed":
+                trend_engine = None
+                try:
+                    from services.trend_engine import TrendEngine
+
+                    trend_engine = TrendEngine()
+                    snapshot_count = trend_engine.capture_snapshot()
+                    if snapshot_count:
+                        message = (
+                            "Refresh completed successfully. "
+                            f"Captured {snapshot_count} topic trend snapshots."
+                        )
+                except Exception as snapshot_error:
+                    message = (
+                        "Refresh completed successfully, but trend history "
+                        f"could not be captured: {snapshot_error}"
+                    )
+                finally:
+                    if trend_engine is not None:
+                        try:
+                            trend_engine.repository.db.conn.close()
+                        except Exception:
+                            pass
+
+            self._finish_run(
+                run_id,
+                finished_at,
+                status,
+                completed.returncode,
+                message,
+            )
+
+            with self._lock:
+                self._status = {
+                    "state": status,
+                    "started_at": started_at,
+                    "finished_at": finished_at,
+                    "return_code": completed.returncode,
+                    "message": message,
+                    "run_id": run_id,
+                    "trigger": trigger,
+                }
+
+            return int(completed.returncode)
+
+        except Exception as exc:
+            finished_at = self._now()
+            message = f"Refresh failed: {exc}"
+            self._finish_run(
+                run_id,
+                finished_at,
+                "failed",
+                None,
+                message,
+            )
+            with self._lock:
+                self._status = {
+                    "state": "failed",
+                    "started_at": started_at,
+                    "finished_at": finished_at,
+                    "return_code": None,
+                    "message": message,
+                    "run_id": run_id,
+                    "trigger": trigger,
+                }
+            return 1
 
     def get_status(self) -> dict:
         with self._lock:
@@ -217,3 +311,17 @@ class RefreshService:
 
 
 refresh_service = RefreshService()
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run one Cash Machine Engine refresh.")
+    parser.add_argument(
+        "--trigger",
+        default="scheduled",
+        choices={"manual", "scheduled", "cron"},
+        help="Refresh trigger label stored in refresh_runs.",
+    )
+    args = parser.parse_args()
+    raise SystemExit(refresh_service.run_once(trigger=args.trigger))

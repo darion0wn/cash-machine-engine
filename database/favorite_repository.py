@@ -32,13 +32,14 @@ class FavoriteRepository:
 
         cursor.execute(
             """
-            INSERT OR IGNORE INTO favorite_opportunities (
+            INSERT INTO favorite_opportunities (
                 opportunity_id,
                 cash_machine_score_at_save,
                 ranking_score_at_save,
                 portfolio_status_at_save
             )
             VALUES (?, ?, ?, ?)
+            ON CONFLICT(opportunity_id) DO NOTHING
             """,
             (
                 opportunity_id,

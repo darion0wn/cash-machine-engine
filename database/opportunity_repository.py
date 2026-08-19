@@ -59,9 +59,7 @@ class OpportunityRepository:
         if self.exists(opportunity):
             return None
 
-        cursor = self.db.conn.cursor()
-
-        cursor.execute(
+        return self.db.insert_returning_id(
             """
             INSERT INTO opportunities (
 
@@ -110,10 +108,6 @@ class OpportunityRepository:
                 opportunity.status.value,
             ),
         )
-
-        self.db.conn.commit()
-
-        return cursor.lastrowid
 
     def next_pending(
         self,

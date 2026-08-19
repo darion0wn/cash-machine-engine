@@ -1,0 +1,22 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local DB and generated runtime data
+database/opportunities.db
+data/
+reports/markdown/
+
+# Git / editor
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp

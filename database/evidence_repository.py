@@ -33,7 +33,7 @@ class EvidenceRepository:
         if not observation or not observation.strip():
             raise ValueError("observation is required")
 
-        cursor = self.db.conn.execute(
+        return self.db.insert_returning_id(
             """
             INSERT INTO validation_evidence(
                 opportunity_id, validation_key, status, observation,
@@ -46,8 +46,6 @@ class EvidenceRepository:
                 confidence, (notes or "").strip() or None,
             ),
         )
-        self.db.conn.commit()
-        return int(cursor.lastrowid)
 
     def list_for_opportunity(self, opportunity_id: int) -> list[dict]:
         rows = self.db.conn.execute(

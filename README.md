@@ -93,7 +93,44 @@ The scheduler runs at most one automatic refresh per calendar day. If the app st
 
 A failed scheduled run is not retried repeatedly in a tight loop. A manual refresh remains available from the Dashboard.
 
-The scheduler is intentionally in-process because Cash Machine Engine is currently a private tool. The Python/Flask process must remain running for automatic refreshes to occur.
+For local development, the scheduler can run in-process. In production, the web process keeps the scheduler disabled and a separate daily Cron Job runs:
+
+```bash
+python -m web.services.refresh_service --trigger scheduled
+```
+
+The production web service and Cron Job share the same PostgreSQL database.
+
+## Production deployment
+
+Production is designed as two separate services sharing PostgreSQL:
+
+```text
+Web Service
+    |
+    +---- PostgreSQL
+    |
+Cron Job (07:00 Europe/Rome)
+    |
+    +---- PostgreSQL
+```
+
+Set:
+
+```text
+DATABASE_URL=postgresql://...
+DB_BACKEND=postgres
+RUNTIME_ROLE=web
+SCHEDULER_IN_PROCESS=False
+```
+
+Migrate the existing local database once before switching to production:
+
+```bash
+python -m database.migrate_sqlite_to_postgres   --source database/opportunities.db   --dsn "$DATABASE_URL"
+```
+
+Never commit database credentials or `.env` files.
 
 ## How it works
 
@@ -113,7 +150,8 @@ The pipeline is split into three main layers:
 
 - Python
 - Flask
-- SQLite
+- PostgreSQL (production)
+- SQLite (local development)
 - Jinja
 - Bootstrap 5
 - Gemini

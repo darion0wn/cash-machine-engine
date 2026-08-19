@@ -12,9 +12,7 @@ class AnalysisRepository:
 
     def save(self, analysis: Analysis) -> int:
 
-        cursor = self.db.conn.cursor()
-
-        cursor.execute(
+        return self.db.insert_returning_id(
             """
             INSERT INTO analyses (
 
@@ -169,10 +167,6 @@ class AnalysisRepository:
                 analysis.recommended_next_steps,
             ),
         )
-
-        self.db.conn.commit()
-
-        return cursor.lastrowid
     
     def find_all(self):
 

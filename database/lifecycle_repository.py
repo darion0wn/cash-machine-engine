@@ -76,7 +76,7 @@ class LifecycleRepository:
         current = self.current(opportunity_id)
         if current and current["stage"] == stage:
             return int(current["id"])
-        cursor = self.db.conn.execute(
+        return self.db.insert_returning_id(
             """
             INSERT INTO opportunity_lifecycle(
                 opportunity_id, stage, reason, source
@@ -89,8 +89,6 @@ class LifecycleRepository:
                 (source or "founder").strip(),
             ),
         )
-        self.db.conn.commit()
-        return int(cursor.lastrowid)
 
     def close(self) -> None:
         self.db.conn.close()

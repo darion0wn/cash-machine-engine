@@ -21,7 +21,7 @@ class FounderDecisionRepository:
         decision = (decision or "WATCH").upper().strip()
         if decision not in self.VALID_DECISIONS:
             raise ValueError(f"Invalid founder decision: {decision}")
-        cursor = self.db.conn.execute(
+        return self.db.insert_returning_id(
             """
             INSERT INTO founder_decisions(
                 opportunity_id, decision, rationale, next_action, source
@@ -34,8 +34,6 @@ class FounderDecisionRepository:
                 (source or "founder").strip(),
             ),
         )
-        self.db.conn.commit()
-        return int(cursor.lastrowid)
 
     def latest(self, opportunity_id: int) -> dict | None:
         row = self.db.conn.execute(

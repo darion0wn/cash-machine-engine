@@ -6,7 +6,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template
 
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
@@ -15,6 +15,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from web.routes import register_routes  # noqa: E402
+from config.settings import RUNTIME_ROLE, SCHEDULER_IN_PROCESS  # noqa: E402
 from web.services.scheduler_service import scheduler_service  # noqa: E402
 
 
@@ -59,9 +60,12 @@ def create_app() -> Flask:
 
     register_routes(app)
 
-    # The scheduler is an in-process background worker. In debug mode,
-    # Werkzeug may spawn a reloader child, so only the serving process starts it.
-    if os.getenv("FLASK_DEBUG", "0") != "1" or os.getenv("WERKZEUG_RUN_MAIN") == "true":
+    # In production the scheduler is intentionally external (cron/job).
+    # Local development can still use the in-process scheduler.
+    if (
+        SCHEDULER_IN_PROCESS
+        and (os.getenv("FLASK_DEBUG", "0") != "1" or os.getenv("WERKZEUG_RUN_MAIN") == "true")
+    ):
         scheduler_service.start()
 
     build_date = os.getenv("BUILD_DATE") or date.today().strftime("%d %b %Y")
@@ -77,6 +81,17 @@ def create_app() -> Flask:
             "build_date": build_date,
             "current_year": date.today().year,
         }
+
+    @app.get("/health")
+    def health_check():
+        return jsonify(
+            {
+                "status": "ok",
+                "service": APP_NAME,
+                "role": RUNTIME_ROLE,
+                "scheduler_in_process": SCHEDULER_IN_PROCESS,
+            }
+        )
 
     @app.errorhandler(404)
     def page_not_found(error):

@@ -32,3 +32,8 @@ reports/json/*.json
 Thumbs.db
 
 *.zip
+
+.pytest_cache/
+.mypy_cache/
+database/opportunities.db
+data/
