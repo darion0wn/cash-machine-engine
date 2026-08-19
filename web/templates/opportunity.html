@@ -371,6 +371,63 @@
             {% endif %}
           </div>
 
+          <div class="lifecycle-card mb-4">
+            <div class="card-body">
+              <div class="validation-framework-kicker">Opportunity lifecycle</div>
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                  <h3 class="section-title mb-1">{{ detail.analysis.lifecycle.current_label }}</h3>
+                  <p class="text-muted mb-0">{{ detail.analysis.lifecycle.current_reason }}</p>
+                </div>
+                <span class="status-pill status-{{ detail.analysis.lifecycle.current_stage|lower }}">{{ detail.analysis.lifecycle.current_label }}</span>
+              </div>
+
+              <div class="lifecycle-track mb-3">
+                {% for stage in detail.analysis.lifecycle.stages %}
+                <div class="lifecycle-stage {% if stage.active %}is-active{% endif %}">
+                  {{ stage.label }}
+                </div>
+                {% endfor %}
+              </div>
+
+              <div class="row g-3">
+                <div class="col-lg-7">
+                  <div class="validation-plan-label mb-2">Lifecycle history</div>
+                  {% if detail.analysis.lifecycle.history %}
+                  <div class="lifecycle-history">
+                    {% for event in detail.analysis.lifecycle.history[:6] %}
+                    <div class="lifecycle-history-item">
+                      <span class="lifecycle-history-dot"></span>
+                      <div>
+                        <strong>{{ event.label }}</strong>
+                        <div class="small text-muted">{{ event.changed_at_label }} · {{ event.source }}</div>
+                        {% if event.reason %}<div class="small mt-1">{{ event.reason }}</div>{% endif %}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% else %}
+                  <div class="validation-empty">No explicit lifecycle transitions recorded yet. The current stage is inferred from the opportunity state.</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-lg-5">
+                  <form method="post" action="{{ url_for('pages.transition_lifecycle', opportunity_id=detail.opportunity.id) }}">
+                    <label class="form-label">Move opportunity</label>
+                    <select name="stage" class="form-select mb-2">
+                      {% for stage in detail.analysis.lifecycle.stages %}
+                      <option value="{{ stage.key }}" {% if stage.active %}selected{% endif %}>{{ stage.label }}</option>
+                      {% endfor %}
+                    </select>
+                    <textarea name="reason" class="form-control mb-2" rows="3" placeholder="Why are we moving it to this stage?"></textarea>
+                    <button class="btn btn-primary" type="submit">Save lifecycle stage</button>
+                  </form>
+                  <div class="small text-muted mt-2">Next action: {{ detail.analysis.lifecycle.next_actions[0] if detail.analysis.lifecycle.next_actions else 'Review the opportunity.' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="founder-decision-card mb-4">
             <div class="founder-decision-head">
               <div>

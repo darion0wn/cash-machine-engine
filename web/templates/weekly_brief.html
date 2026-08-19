@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-topbar d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <div class="dashboard-eyebrow">Founder workspace</div>
+    <h1 class="page-title mb-2">Founder Weekly Brief</h1>
+    <p class="page-subtitle mb-0">A private weekly decision brief focused on the opportunities most likely to move us toward €500/month.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-primary" href="{{ url_for('pages.feed') }}">Open feed</a>
+  </div>
+</div>
+
+<div class="brief-hero mb-4">
+  <div>
+    <div class="brief-kicker">Weekly focus · {{ window_label }}</div>
+    <h2 class="brief-title">What deserves our attention this week?</h2>
+    <p class="brief-subtitle">Generated {{ generated_at }}. This is a private decision brief, not a public market report.</p>
+  </div>
+  <div class="brief-hero-badge">Founder only</div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="metric card h-100"><div class="card-body"><div class="metric-label">Analyses</div><div class="metric-value">{{ metrics.analyses }}</div><div class="metric-hint">New in the last 7 days</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="metric card h-100"><div class="card-body"><div class="metric-label">BUILD</div><div class="metric-value">{{ metrics.build }}</div><div class="metric-hint">Current pipeline signals</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="metric card h-100"><div class="card-body"><div class="metric-label">WATCH</div><div class="metric-value">{{ metrics.watch }}</div><div class="metric-hint">Worth monitoring</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="metric card h-100"><div class="card-body"><div class="metric-label">SKIP</div><div class="metric-value">{{ metrics.skip }}</div><div class="metric-hint">Not worth build time now</div></div></div></div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="section-kicker">Founder recommendation</div>
+    <h2 class="section-title mb-2">What should we do next?</h2>
+    <p class="mb-0">{{ recommendation }}</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="section-kicker">Top opportunities</div>
+    <h2 class="section-title mb-3">Three opportunities worth attention</h2>
+    {% if top_opportunities %}
+      <div class="weekly-brief-list">
+        {% for item in top_opportunities %}
+        <article class="weekly-brief-item">
+          <div class="weekly-brief-rank">#{{ loop.index }}</div>
+          <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+              <h3 class="weekly-brief-title mb-0">{{ item.title }}</h3>
+              <span class="status-pill status-{{ item.decision|lower }}">{{ item.decision }}</span>
+            </div>
+            <div class="small text-muted mb-2">{{ item.source }} · Cash {{ item.cash_score }} · Rank {{ item.ranking_score }} · Validation {{ item.validation_score }}/100 · {{ item.lifecycle_stage }}</div>
+            <div class="weekly-brief-path">{{ item.target_path }}</div>
+            <div class="weekly-brief-action"><strong>Next action:</strong> {{ item.next_action }}</div>
+          </div>
+          <a class="btn btn-outline-primary align-self-center" href="{{ url_for('dashboard.detail', opportunity_id=item.opportunity_id) }}">Open</a>
+        </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="validation-empty">No new analyses were created in the last 7 days.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

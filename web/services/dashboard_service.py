@@ -12,6 +12,7 @@ from services.revenue_simulator import RevenueSimulator
 from services.validation_plan import ValidationPlan
 from services.evidence_tracker import EvidenceTracker
 from services.founder_decision import FounderDecision
+from services.opportunity_lifecycle import OpportunityLifecycle
 from web.services.dashboard_intelligence_service import DashboardIntelligenceService
 
 
@@ -680,6 +681,7 @@ class DashboardService:
 
             evidence_tracker = EvidenceTracker()
             founder_decision = FounderDecision()
+            lifecycle = OpportunityLifecycle()
             try:
                 evidence = evidence_tracker.get(opportunity_id)
                 analysis["evidence_tracking"] = evidence
@@ -708,9 +710,15 @@ class DashboardService:
                 validation_plan["pending_steps"] = len(plan_statuses) - validation_plan["completed_steps"]
                 validation_plan["next_step"] = next((step["title"] for step in validation_plan.get("plan", []) if step.get("status") == "PENDING"), None)
                 analysis["validation_plan"] = validation_plan
+
+                analysis["lifecycle"] = lifecycle.get(
+                    opportunity_id,
+                    analysis,
+                )
             finally:
                 evidence_tracker.close()
                 founder_decision.close()
+                lifecycle.close()
 
             analysis["score_breakdown"] = [
                 {"label": "Problem", "value": analysis["problem_score"]},

@@ -5,6 +5,8 @@ from web.services.feed_service import FeedService
 from web.services.favorites_service import FavoritesService
 from web.services.portfolio_service import PortfolioService
 from web.services.reports_service import ReportsService
+from web.services.weekly_brief_service import WeeklyBriefService
+from services.opportunity_lifecycle import OpportunityLifecycle
 from web.services.trends_service import TrendsService
 from services.evidence_tracker import EvidenceTracker
 from services.founder_decision import FounderDecision
@@ -392,6 +394,49 @@ def save_founder_decision(opportunity_id: int):
 
     if request.is_json:
         return jsonify({"ok": True, "decision": decision})
+    return __import__("flask").redirect(url_for("dashboard.detail", opportunity_id=opportunity_id))
+
+
+@pages_bp.route("/weekly-brief")
+def weekly_brief():
+    service = WeeklyBriefService()
+    data = service.build()
+    return render_template(
+        "weekly_brief.html",
+        active_page="weekly_brief",
+        page_title="Founder Weekly Brief",
+        page_description=(
+            "Private weekly brief focused on the opportunities and actions "
+            "most likely to move the workspace toward €500/month."
+        ),
+        **data,
+    )
+
+
+@pages_bp.route("/opportunities/<int:opportunity_id>/lifecycle", methods=["POST"])
+def transition_lifecycle(opportunity_id: int):
+    payload = request.form if request.form else (request.get_json(silent=True) or {})
+    stage = str(payload.get("stage", "ANALYZED")).strip().upper()
+    reason = str(payload.get("reason", "")).strip()
+    service = OpportunityLifecycle()
+    try:
+        lifecycle_id = service.transition(
+            opportunity_id,
+            stage=stage,
+            reason=reason,
+            source="founder",
+        )
+    except ValueError as exc:
+        service.close()
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    finally:
+        try:
+            service.close()
+        except Exception:
+            pass
+
+    if request.is_json:
+        return jsonify({"ok": True, "lifecycle_id": lifecycle_id, "stage": stage})
     return __import__("flask").redirect(url_for("dashboard.detail", opportunity_id=opportunity_id))
 
 

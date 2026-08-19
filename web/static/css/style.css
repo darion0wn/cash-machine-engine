@@ -4405,3 +4405,28 @@ body {
 .compare-decision p { margin:.35rem 0 0; color:#475569; font-size:.76rem; line-height:1.5; }
 @media (max-width: 991.98px) { .compare-grid { grid-template-columns:1fr; } }
 @media (max-width: 767.98px) { .founder-decision-head, .evidence-tracking-head, .evidence-record-head { flex-direction:column; } }
+
+
+/* Sprint 18.7-18.8: lifecycle + weekly brief */
+.lifecycle-card,
+.brief-hero,
+.weekly-brief-item { border: 1px solid #dbe4f0; border-radius: 18px; }
+.brief-hero { padding: 24px; background: linear-gradient(135deg, #0f1f4d, #2856d8); color: #fff; display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.brief-kicker, .section-kicker { text-transform: uppercase; letter-spacing: .12em; font-size: .7rem; font-weight: 800; color: #73809b; }
+.brief-hero .brief-kicker { color: rgba(255,255,255,.75); }
+.brief-title { font-size: 1.8rem; font-weight: 800; margin: 4px 0 8px; }
+.brief-subtitle { margin: 0; color: rgba(255,255,255,.84); }
+.brief-hero-badge { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.15); font-weight: 700; }
+.weekly-brief-list { display: grid; gap: 14px; }
+.weekly-brief-item { display: flex; gap: 16px; padding: 18px; background: #fff; align-items: flex-start; }
+.weekly-brief-rank { width: 36px; height: 36px; border-radius: 50%; background: #e9efff; color: #2558d9; display: flex; align-items: center; justify-content: center; font-weight: 800; flex: 0 0 auto; }
+.weekly-brief-title { font-size: 1rem; font-weight: 800; }
+.weekly-brief-path { padding: 10px 12px; border-radius: 12px; background: #f4f7fb; margin: 8px 0; font-size: .9rem; }
+.weekly-brief-action { font-size: .9rem; }
+.lifecycle-track { display: grid; grid-template-columns: repeat(8, minmax(95px, 1fr)); gap: 8px; overflow-x: auto; }
+.lifecycle-stage { padding: 10px 8px; border: 1px solid #dbe4f0; border-radius: 12px; background: #f8fafc; text-align: center; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.lifecycle-stage.is-active { background: #eaf0ff; border-color: #2c60dc; color: #1e48b8; }
+.lifecycle-history { display: grid; gap: 10px; }
+.lifecycle-history-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #e4eaf2; border-radius: 12px; background: #fff; }
+.lifecycle-history-dot { width: 10px; height: 10px; border-radius: 50%; background: #2563eb; margin-top: 6px; flex: 0 0 auto; }
+@media (max-width: 900px) { .brief-hero { flex-direction: column; } .weekly-brief-item { flex-direction: column; } .lifecycle-track { grid-template-columns: repeat(8, minmax(110px, 1fr)); } }

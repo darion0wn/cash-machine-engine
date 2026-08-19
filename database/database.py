@@ -159,6 +159,28 @@ class Database:
         """)
 
         cursor.execute("""
+        CREATE TABLE IF NOT EXISTS opportunity_lifecycle (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            opportunity_id INTEGER NOT NULL,
+            stage TEXT NOT NULL,
+            reason TEXT NOT NULL DEFAULT '',
+            source TEXT NOT NULL DEFAULT 'founder',
+            changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (opportunity_id)
+                REFERENCES opportunities(id)
+                ON DELETE CASCADE
+        )
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_opportunity_lifecycle_opportunity_time
+        ON opportunity_lifecycle(opportunity_id, changed_at DESC, id DESC)
+        """)
+
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS founder_decisions (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
