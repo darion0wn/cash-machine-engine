@@ -166,6 +166,74 @@
             <p class="decision-action mb-0"><strong>Decision label:</strong> {{ detail.analysis.decision.decision_label }} · <strong>Next action:</strong> {{ detail.analysis.decision.next_action }}</p>
           </div>
 
+          <div class="validation-framework-card mb-4">
+            <div class="validation-framework-head">
+              <div>
+                <div class="validation-framework-kicker">Opportunity validation framework</div>
+                <h3 class="section-title mb-1">Evidence before build</h3>
+                <p class="validation-framework-summary mb-0">{{ detail.analysis.validation.summary }}</p>
+              </div>
+              <div class="validation-framework-score">
+                <span>Validation score</span>
+                <strong>{{ detail.analysis.validation.validation_score }}/100</strong>
+                <small>{{ detail.analysis.validation.coverage_score }}% coverage · {{ detail.analysis.validation.confidence }} confidence</small>
+              </div>
+            </div>
+
+            <div class="validation-framework-grid">
+              <div>
+                <div class="validation-column-title validation-evidence">Evidence</div>
+                {% if detail.analysis.validation.evidence %}
+                  {% for item in detail.analysis.validation.evidence %}
+                  <div class="validation-item">
+                    <div class="validation-item-head">
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.score }}/10</span>
+                    </div>
+                    <div class="validation-item-copy">{{ item.reason }}</div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="validation-empty">No direct evidence yet.</div>
+                {% endif %}
+              </div>
+
+              <div>
+                <div class="validation-column-title validation-inference">Inference</div>
+                {% if detail.analysis.validation.inference %}
+                  {% for item in detail.analysis.validation.inference %}
+                  <div class="validation-item">
+                    <div class="validation-item-head">
+                      <strong>{{ item.label }}</strong>
+                      {% if item.score is not none %}<span>{{ item.score }}/10</span>{% else %}<span>—</span>{% endif %}
+                    </div>
+                    <div class="validation-item-copy">{{ item.reason }}</div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="validation-empty">No inferred signals yet.</div>
+                {% endif %}
+              </div>
+
+              <div>
+                <div class="validation-column-title validation-unknown">Unknown / To validate</div>
+                {% if detail.analysis.validation.unknown %}
+                  {% for item in detail.analysis.validation.unknown %}
+                  <div class="validation-item validation-item-unknown">
+                    <div class="validation-item-head">
+                      <strong>{{ item.label }}</strong>
+                      <span>Unknown</span>
+                    </div>
+                    <div class="validation-item-copy">{{ item.reason }}</div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="validation-empty">No important validation gaps detected.</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
           <div class="mb-4">
             <h3 class="section-subtitle">Problem</h3>
             <p>{{ detail.analysis.problem }}</p>

@@ -7,6 +7,7 @@ from typing import Any
 from database.database import Database
 from services.trend_engine import TrendEngine
 from services.decision_engine import DecisionEngine
+from services.validation_framework import OpportunityValidationFramework
 from web.services.dashboard_intelligence_service import DashboardIntelligenceService
 
 
@@ -669,6 +670,7 @@ class DashboardService:
             }
 
             analysis["decision"] = DecisionEngine.evaluate(analysis)
+            analysis["validation"] = OpportunityValidationFramework.evaluate(analysis)
 
             analysis["score_breakdown"] = [
                 {"label": "Problem", "value": analysis["problem_score"]},
