@@ -46,3 +46,21 @@ SCHEDULER_TIME = SCHEDULER_TIMES[0] if SCHEDULER_TIMES else "07:00"
 SCHEDULER_TIMEZONE = os.getenv("SCHEDULER_TIMEZONE", "Europe/Rome")
 SCHEDULER_CHECK_SECONDS = int(os.getenv("SCHEDULER_CHECK_SECONDS", "30"))
 SCHEDULER_CATCH_UP = _env_bool("SCHEDULER_CATCH_UP", True)
+
+
+# Telegram Alerts
+TELEGRAM_ALERTS_ENABLED = _env_bool("TELEGRAM_ALERTS_ENABLED", False)
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+_telegram_public_url = os.getenv("TELEGRAM_PUBLIC_URL", "").strip().rstrip("/")
+if not _telegram_public_url:
+    _railway_public_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "").strip()
+    if _railway_public_domain:
+        _telegram_public_url = f"https://{_railway_public_domain}"
+TELEGRAM_PUBLIC_URL = _telegram_public_url
+TELEGRAM_MIN_CASH_SCORE = int(os.getenv("TELEGRAM_MIN_CASH_SCORE", "80"))
+TELEGRAM_MIN_VALIDATION_SCORE = int(
+    os.getenv("TELEGRAM_MIN_VALIDATION_SCORE", "75")
+)
+TELEGRAM_MIN_CONFIDENCE = int(os.getenv("TELEGRAM_MIN_CONFIDENCE", "7"))
+TELEGRAM_TIMEOUT_SECONDS = float(os.getenv("TELEGRAM_TIMEOUT_SECONDS", "10"))
