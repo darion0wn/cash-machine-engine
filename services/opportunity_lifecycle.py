@@ -54,8 +54,8 @@ class OpportunityLifecycle:
     def _next_actions(cls, stage: str) -> list[str]:
         return {
             "DISCOVERED": ["Run the analysis and decide whether the signal deserves attention."],
-            "ANALYZED": ["Review validation gaps and choose the highest-priority test."],
-            "VALIDATING": ["Collect real customer, pricing or distribution evidence."],
+            "ANALYZED": ["Continue monitoring the opportunity through new discovery and trend signals."],
+            "VALIDATING": ["The engine is tracking the remaining information gaps automatically."],
             "VALIDATED": ["Define the smallest MVP and lock the first acquisition channel."],
             "BUILDING": ["Ship the smallest useful version and start acquiring first customers."],
             "LAUNCHED": ["Measure activation, retention and revenue against the €500/month target."],
@@ -128,6 +128,30 @@ class OpportunityLifecycle:
             stage=stage,
             reason=reason,
             source=source,
+        )
+
+    @classmethod
+    def stage_for_decision(cls, decision: str) -> str:
+        return {
+            "BUILD": "BUILDING",
+            "VALIDATE": "VALIDATING",
+            "WATCH": "ANALYZED",
+            "KILL": "KILLED",
+        }.get(str(decision or "WATCH").upper(), "ANALYZED")
+
+    def sync_from_decision(self, opportunity_id: int, decision: str, validation: dict | None = None) -> int:
+        stage = self.stage_for_decision(decision)
+        validation = validation or {}
+        reason = (
+            f"Automatic lifecycle stage derived from engine decision {str(decision or 'WATCH').upper()} "
+            f"with validation score {int(validation.get('validation_score', 0) or 0)}/100 "
+            f"and {int(validation.get('coverage_score', 0) or 0)}% coverage."
+        )
+        return self.repository.save(
+            opportunity_id,
+            stage=stage,
+            reason=reason,
+            source="engine",
         )
 
     def close(self) -> None:

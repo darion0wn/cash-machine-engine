@@ -4,6 +4,8 @@ from models.opportunity_status import OpportunityStatus
 from services.analyzer import Analyzer
 from services.report_generator import ReportGenerator
 from services.ranking_engine import RankingEngine
+from services.autonomous_opportunity_pipeline import AutonomousOpportunityPipeline
+
 
 class AnalysisWorker:
 
@@ -21,9 +23,7 @@ class AnalysisWorker:
 
     def run_once(self):
 
-        opportunity = (
-            self.opportunity_repository.next_pending()
-        )
+        opportunity = self.opportunity_repository.next_pending()
 
         if opportunity is None:
 
@@ -60,6 +60,26 @@ class AnalysisWorker:
                 opportunity,
                 analysis,
             )
+
+            try:
+                autonomous = AutonomousOpportunityPipeline.process(
+                    opportunity,
+                    analysis,
+                )
+                print(
+                    "[INFO] Autonomous evidence, validation, decision and "
+                    "lifecycle synchronized: "
+                    f"{autonomous['decision']['effective_decision']}"
+                )
+            except Exception as automation_error:
+                # The AI analysis remains a valid completed analysis even if
+                # supporting automation has a transient persistence problem.
+                # The error is logged so the refresh can finish and retrying
+                # the analysis itself is avoided.
+                print(
+                    "[WARN] Autonomous opportunity post-processing failed: "
+                    f"{automation_error}"
+                )
 
             self.opportunity_repository.update_status(
                 opportunity.id,

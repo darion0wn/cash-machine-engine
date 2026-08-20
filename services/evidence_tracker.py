@@ -18,10 +18,18 @@ class EvidenceTracker:
         evidence = self.repository.list_for_opportunity(opportunity_id)
         latest = self.repository.latest_by_key(opportunity_id)
         counts = self.repository.count_by_status(opportunity_id)
+        automatic_latest = self.repository.latest_automatic_by_key(opportunity_id)
+        automatic_items = [item for item in evidence if str(item.get("source") or "").startswith("engine:")]
+        automatic_counts = {"PASS": 0, "FAIL": 0, "PARTIAL": 0}
+        for item in automatic_items:
+            automatic_counts[item["status"]] = automatic_counts.get(item["status"], 0) + 1
+
         return {
             "items": evidence,
             "latest_by_key": latest,
+            "automatic_latest_by_key": automatic_latest,
             "counts": counts,
+            "automatic_counts": automatic_counts,
             "total": len(evidence),
             "passed": counts["PASS"],
             "failed": counts["FAIL"],

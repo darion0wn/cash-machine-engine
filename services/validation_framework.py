@@ -73,7 +73,11 @@ class OpportunityValidationFramework:
         }
 
     @classmethod
-    def evaluate(cls, analysis: dict[str, Any] | None) -> dict[str, Any]:
+    def evaluate(
+        cls,
+        analysis: dict[str, Any] | None,
+        automatic_evidence: dict[str, dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         if not analysis:
             return {
                 "validation_score": 0,
@@ -86,6 +90,7 @@ class OpportunityValidationFramework:
                 "unknown": [],
                 "dimensions": [],
                 "summary": "No completed analysis is available yet.",
+                "automatic_evidence_count": 0,
             }
 
         dimensions: list[dict[str, Any]] = []
@@ -271,6 +276,28 @@ class OpportunityValidationFramework:
                 "ai_leverage", None, "UNKNOWN", "AI leverage has not been sufficiently assessed.", []
             ))
 
+        automatic_evidence = automatic_evidence or {}
+        evidence_status_score = {"PASS": 10, "PARTIAL": 5, "FAIL": 0}
+        for item in dimensions:
+            evidence = automatic_evidence.get(item.get("key"))
+            if not evidence:
+                continue
+            status = str(evidence.get("status") or "PARTIAL").upper()
+            if status not in evidence_status_score:
+                continue
+            evidence_score = evidence_status_score[status]
+            if status == "PASS":
+                item["status"] = "EVIDENCE"
+                if item.get("score") is None:
+                    item["score"] = evidence_score
+                item["reason"] = evidence.get("observation") or item.get("reason")
+                item["basis"] = ["automatic_evidence", item.get("key")]
+            elif item.get("status") == "UNKNOWN":
+                item["status"] = "INFERENCE"
+                item["score"] = evidence_score
+                item["reason"] = evidence.get("observation") or item.get("reason")
+                item["basis"] = ["automatic_evidence", item.get("key")]
+
         known = [item for item in dimensions if item["status"] != "UNKNOWN"]
         evidence = [item for item in dimensions if item["status"] == "EVIDENCE"]
         inference = [item for item in dimensions if item["status"] == "INFERENCE"]
@@ -305,4 +332,5 @@ class OpportunityValidationFramework:
             "unknown": unknown,
             "dimensions": dimensions,
             "summary": summary,
+            "automatic_evidence_count": len(automatic_evidence),
         }

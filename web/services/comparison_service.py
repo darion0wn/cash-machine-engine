@@ -36,12 +36,14 @@ class ComparisonService:
             analysis = detail["analysis"]
             evidence = self.evidence.get(opportunity_id)
             validation = analysis.get("validation") or {}
-            effective_validation = self.evidence.apply_to_validation(validation, evidence["latest_by_key"])
+            effective_validation = self.evidence.apply_to_validation(validation, evidence.get("automatic_latest_by_key") or {})
             decision = self.decision.recommend(
                 effective_validation,
                 analysis.get("revenue_simulation") or {},
                 evidence,
                 self.decision.latest(opportunity_id),
+                analysis=analysis,
+                decision_context=analysis.get("decision") or {},
             )
             opportunities.append({
                 "opportunity": detail["opportunity"],

@@ -7,6 +7,7 @@ class EvidenceRepository:
 
     VALID_STATUSES = {"PASS", "FAIL", "PARTIAL"}
     VALID_CONFIDENCE = {"LOW", "MEDIUM", "HIGH"}
+    AUTOMATIC_SOURCE_PREFIX = "engine:"
 
     def __init__(self) -> None:
         self.db = Database()
@@ -46,6 +47,59 @@ class EvidenceRepository:
                 confidence, (notes or "").strip() or None,
             ),
         )
+
+
+    def upsert_automatic(
+        self,
+        opportunity_id: int,
+        validation_key: str,
+        status: str,
+        observation: str,
+        source: str = "engine:automatic",
+        confidence: str = "MEDIUM",
+        notes: str | None = None,
+    ) -> int:
+        """Persist an automatic evidence observation only when it changed."""
+        latest = self.db.conn.execute(
+            """
+            SELECT id, status, observation, source, confidence, notes
+            FROM validation_evidence
+            WHERE opportunity_id = ?
+              AND validation_key = ?
+              AND source LIKE ?
+            ORDER BY captured_at DESC, id DESC
+            LIMIT 1
+            """,
+            (opportunity_id, validation_key, f"{self.AUTOMATIC_SOURCE_PREFIX}%"),
+        ).fetchone()
+
+        normalized_notes = (notes or "").strip() or None
+        if latest is not None and (
+            latest[1] == status
+            and latest[2] == observation
+            and latest[3] == source
+            and latest[4] == confidence
+            and latest[5] == normalized_notes
+        ):
+            return int(latest[0])
+
+        return self.add(
+            opportunity_id,
+            validation_key=validation_key,
+            status=status,
+            observation=observation,
+            source=source,
+            confidence=confidence,
+            notes=notes,
+        )
+
+    def latest_automatic_by_key(self, opportunity_id: int) -> dict[str, dict]:
+        result: dict[str, dict] = {}
+        for item in self.list_for_opportunity(opportunity_id):
+            if not str(item.get("source") or "").startswith(self.AUTOMATIC_SOURCE_PREFIX):
+                continue
+            result.setdefault(item["validation_key"], item)
+        return result
 
     def list_for_opportunity(self, opportunity_id: int) -> list[dict]:
         rows = self.db.conn.execute(

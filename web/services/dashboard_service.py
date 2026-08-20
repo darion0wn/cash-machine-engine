@@ -675,9 +675,6 @@ class DashboardService:
             }
 
             analysis["decision"] = DecisionEngine.evaluate(analysis)
-            analysis["validation"] = OpportunityValidationFramework.evaluate(analysis)
-            analysis["revenue_simulation"] = RevenueSimulator.simulate(analysis)
-            analysis["validation_plan"] = ValidationPlan.build(analysis)
 
             evidence_tracker = EvidenceTracker()
             founder_decision = FounderDecision()
@@ -685,9 +682,12 @@ class DashboardService:
             try:
                 evidence = evidence_tracker.get(opportunity_id)
                 analysis["evidence_tracking"] = evidence
-                # Evidence tracking is optional founder context. It must not
-                # overwrite the AI-derived validation quality or block the
-                # automatic decision.
+                analysis["validation"] = OpportunityValidationFramework.evaluate(
+                    analysis,
+                    automatic_evidence=evidence.get("automatic_latest_by_key") or {},
+                )
+                analysis["revenue_simulation"] = RevenueSimulator.simulate(analysis)
+
                 founder_decision_latest = founder_decision.latest(opportunity_id)
                 analysis["founder_decision"] = founder_decision.recommend(
                     analysis["validation"],
@@ -695,13 +695,12 @@ class DashboardService:
                     evidence,
                     founder_decision_latest,
                     analysis=analysis,
+                    decision_context=analysis["decision"],
                 )
-
-                analysis["validation_plan"] = ValidationPlan.build(analysis)
 
                 analysis["lifecycle"] = lifecycle.get(
                     opportunity_id,
-                    analysis,
+                    {**analysis, "founder_decision": analysis["founder_decision"]},
                 )
             finally:
                 evidence_tracker.close()

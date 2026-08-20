@@ -28,6 +28,7 @@ class FounderDecision:
         evidence: dict | None = None,
         existing_decision: dict | None = None,
         analysis: dict | None = None,
+        decision_context: dict | None = None,
     ) -> dict:
         """Return the current automatic decision without manual evidence gates.
 
@@ -45,17 +46,19 @@ class FounderDecision:
         decision_map = {
             "BUILD": "BUILD",
             "WATCH": "WATCH",
-            "SKIP": "KILL",
+            "SKIP": "WATCH",
             "KILL": "KILL",
             "VALIDATE": "VALIDATE",
         }
         decision = decision_map.get(ai_verdict, "WATCH")
+        decision_context = decision_context or {}
 
         score = int(validation.get("validation_score", 0) or 0)
+        evidence_passed, evidence_failed, evidence_partial = cls._evidence_counts(evidence)
         coverage = int(validation.get("coverage_score", 0) or 0)
         confidence = str(validation.get("confidence") or "Low")
 
-        if existing_decision:
+        if existing_decision and existing_decision.get("source") == "founder":
             effective_decision = existing_decision.get("decision")
             rationale = existing_decision.get("rationale") or ""
             next_action = existing_decision.get("next_action") or ""
@@ -86,9 +89,11 @@ class FounderDecision:
             ),
             "validation_score": score,
             "coverage_score": coverage,
-            "evidence_passed": 0,
-            "evidence_failed": 0,
-            "evidence_partial": 0,
+            "evidence_passed": evidence.get("automatic_counts", {}).get("PASS", evidence_passed) if evidence else evidence_passed,
+            "evidence_failed": evidence.get("automatic_counts", {}).get("FAIL", evidence_failed) if evidence else evidence_failed,
+            "evidence_partial": evidence.get("automatic_counts", {}).get("PARTIAL", evidence_partial) if evidence else evidence_partial,
+            "decision_score": int(decision_context.get("decision_score", 0) or 0),
+            "decision_label": decision_context.get("decision_label") or "Unknown",
             "confidence": confidence,
         }
 
@@ -96,6 +101,39 @@ class FounderDecision:
         return self.repository.save(
             opportunity_id, decision, rationale, next_action, source="founder"
         )
+
+    def sync_automatic_decision(self, opportunity_id: int, recommendation: dict) -> dict:
+        """Persist the engine decision without overwriting a founder override."""
+        latest = self.repository.latest(opportunity_id)
+        if latest and latest.get("source") == "founder":
+            return latest
+
+        decision = recommendation.get("effective_decision") or recommendation.get("recommended_decision") or "WATCH"
+        rationale = recommendation.get("engine_rationale") or recommendation.get("rationale") or ""
+        next_action = recommendation.get("next_action") or ""
+
+        if latest and latest.get("source") == "engine" and (
+            latest.get("decision") == decision
+            and latest.get("rationale") == rationale
+            and latest.get("next_action") == next_action
+        ):
+            return latest
+
+        decision_id = self.repository.save(
+            opportunity_id,
+            decision,
+            rationale,
+            next_action,
+            source="engine",
+        )
+        return {
+            "id": decision_id,
+            "opportunity_id": opportunity_id,
+            "decision": decision,
+            "rationale": rationale,
+            "next_action": next_action,
+            "source": "engine",
+        }
 
     def latest(self, opportunity_id: int) -> dict | None:
         return self.repository.latest(opportunity_id)
