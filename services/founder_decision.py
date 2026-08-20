@@ -27,53 +27,68 @@ class FounderDecision:
         revenue: dict,
         evidence: dict | None = None,
         existing_decision: dict | None = None,
+        analysis: dict | None = None,
     ) -> dict:
-        passed, failed, partial = cls._evidence_counts(evidence)
+        """Return the current automatic decision without manual evidence gates.
+
+        The AI analysis/ranking remains the primary decision source. Validation
+        and revenue are supporting context only; evidence records are optional
+        founder notes and never required to promote/demote an opportunity.
+        """
+        analysis = analysis or {}
+        ai_verdict = str(
+            analysis.get("portfolio_status")
+            or analysis.get("build_verdict")
+            or "WATCH"
+        ).upper()
+
+        decision_map = {
+            "BUILD": "BUILD",
+            "WATCH": "WATCH",
+            "SKIP": "KILL",
+            "KILL": "KILL",
+            "VALIDATE": "VALIDATE",
+        }
+        decision = decision_map.get(ai_verdict, "WATCH")
+
         score = int(validation.get("validation_score", 0) or 0)
         coverage = int(validation.get("coverage_score", 0) or 0)
         confidence = str(validation.get("confidence") or "Low")
-        pricing_known = bool(revenue.get("pricing_known"))
-        target_path_known = bool(
-            pricing_known and revenue.get("pricing_currency") == "EUR"
-        )
-        customers = revenue.get("customers_required")
 
-        if failed >= 2 or (failed >= 1 and score < 45):
-            decision = "KILL"
-            rationale = "Founder evidence contains material failures that outweigh the current positive signal."
-            next_action = "Document the failure and stop spending build time until new evidence materially changes the picture."
-        elif (
-            score >= 80
-            and coverage >= 80
-            and passed >= 3
-            and target_path_known
-            and customers is not None
-            and customers <= 25
-        ):
-            decision = "BUILD"
-            rationale = "The opportunity has strong validation coverage, multiple positive founder evidence signals and a concrete EUR path to the €500/month target."
-            next_action = "Define the smallest MVP and start customer acquisition/validation in parallel."
-        elif score >= 55 or coverage >= 60 or partial > 0 or pricing_known:
-            decision = "VALIDATE"
-            rationale = "The opportunity has enough signal to justify targeted validation, but the evidence is not yet strong enough for a build commitment."
-            next_action = "Complete the highest-priority validation test and record the result."
+        if existing_decision:
+            effective_decision = existing_decision.get("decision")
+            rationale = existing_decision.get("rationale") or ""
+            next_action = existing_decision.get("next_action") or ""
         else:
-            decision = "WATCH"
-            rationale = "The available evidence is still too thin to justify active validation or a build commitment."
-            next_action = "Keep monitoring the opportunity and collect stronger market evidence."
+            effective_decision = decision
+            rationale = (
+                f"Automatic decision derived from the existing AI/ranking verdict: "
+                f"{ai_verdict}. Validation quality is informational "
+                f"({coverage}% coverage, {confidence} confidence) and does not "
+                "create a manual validation gate."
+            )
+            next_action = (
+                analysis.get("next_action")
+                or "Continue collecting market signals through the normal discovery and trend pipeline."
+            )
 
         return {
             "recommended_decision": decision,
-            "current_decision": (existing_decision or {}).get("decision") if existing_decision else None,
-            "effective_decision": (existing_decision or {}).get("decision") if existing_decision else decision,
-            "rationale": (existing_decision or {}).get("rationale") if existing_decision else rationale,
-            "next_action": (existing_decision or {}).get("next_action") if existing_decision else next_action,
-            "engine_rationale": rationale,
+            "current_decision": (
+                existing_decision.get("decision") if existing_decision else None
+            ),
+            "effective_decision": effective_decision,
+            "rationale": rationale,
+            "next_action": next_action,
+            "engine_rationale": (
+                f"AI verdict is {ai_verdict}; validation is informational and "
+                "evidence tracking is optional."
+            ),
             "validation_score": score,
             "coverage_score": coverage,
-            "evidence_passed": passed,
-            "evidence_failed": failed,
-            "evidence_partial": partial,
+            "evidence_passed": 0,
+            "evidence_failed": 0,
+            "evidence_partial": 0,
             "confidence": confidence,
         }
 

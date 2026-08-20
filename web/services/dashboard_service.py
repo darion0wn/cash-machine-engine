@@ -685,31 +685,19 @@ class DashboardService:
             try:
                 evidence = evidence_tracker.get(opportunity_id)
                 analysis["evidence_tracking"] = evidence
-                analysis["validation"] = evidence_tracker.apply_to_validation(
-                    analysis["validation"],
-                    evidence["latest_by_key"],
-                )
+                # Evidence tracking is optional founder context. It must not
+                # overwrite the AI-derived validation quality or block the
+                # automatic decision.
                 founder_decision_latest = founder_decision.latest(opportunity_id)
                 analysis["founder_decision"] = founder_decision.recommend(
                     analysis["validation"],
                     analysis["revenue_simulation"],
                     evidence,
                     founder_decision_latest,
+                    analysis=analysis,
                 )
 
-                validation_plan = ValidationPlan.build(analysis)
-                plan_lookup = evidence["latest_by_key"]
-                for step in validation_plan.get("plan", []):
-                    recorded = plan_lookup.get(step.get("key"))
-                    if recorded:
-                        step["status"] = recorded.get("status", "PARTIAL")
-                plan_statuses = [step.get("status", "PENDING") for step in validation_plan.get("plan", [])]
-                validation_plan["completed_steps"] = sum(status in {"PASS", "FAIL", "PARTIAL"} for status in plan_statuses)
-                validation_plan["pass_steps"] = sum(status == "PASS" for status in plan_statuses)
-                validation_plan["fail_steps"] = sum(status == "FAIL" for status in plan_statuses)
-                validation_plan["pending_steps"] = len(plan_statuses) - validation_plan["completed_steps"]
-                validation_plan["next_step"] = next((step["title"] for step in validation_plan.get("plan", []) if step.get("status") == "PENDING"), None)
-                analysis["validation_plan"] = validation_plan
+                analysis["validation_plan"] = ValidationPlan.build(analysis)
 
                 analysis["lifecycle"] = lifecycle.get(
                     opportunity_id,

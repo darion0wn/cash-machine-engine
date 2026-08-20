@@ -7,11 +7,12 @@ from typing import Any
 
 class DecisionEngine:
     """
-    Deterministic founder-oriented decision layer focused on the private
+    Deterministic founder-oriented decision synthesis focused on the private
     €500/month target.
 
-    It does not overwrite the existing AI/ranking verdict. It adds a second
-    decision layer using only fields already present in an analysis.
+    It does not launch another validation cycle or re-analyze an opportunity.
+    It adds decision context using fields already present in the completed
+    AI analysis.
     """
 
     TARGET_MRR = 500.0
@@ -239,7 +240,7 @@ class DecisionEngine:
             label = "WATCH"
 
         reasons = [
-            f"Founder decision score: {score}/100.",
+            f"Decision synthesis score: {score}/100.",
             f"Existing portfolio status: {status}.",
         ]
 

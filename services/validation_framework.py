@@ -6,11 +6,15 @@ from typing import Any
 
 class OpportunityValidationFramework:
     """
-    Deterministic validation layer for the private founder workspace.
+    Deterministic analysis-quality layer for the private founder workspace.
 
-    This layer does not predict business success. It measures how strong and
-    complete the currently available evidence is across the dimensions that
-    matter before spending time building an opportunity.
+    This layer does not predict business success and does not trigger a
+    second validation cycle. It measures how complete and well-supported the
+    existing AI analysis is across the dimensions that matter for the
+    opportunity.
+
+    It is informational: unknown dimensions remain UNKNOWN instead of
+    creating mandatory founder tasks or blocking the AI verdict.
 
     Each dimension is classified as:
       - EVIDENCE: directly supported by the stored analysis/context.
@@ -284,11 +288,11 @@ class OpportunityValidationFramework:
             confidence = "Low"
 
         if not unknown:
-            summary = "The opportunity has broad supporting coverage across the current validation dimensions."
+            summary = "The analysis has broad supporting coverage across the current dimensions."
         elif len(unknown) <= 2:
-            summary = f"The opportunity is reasonably covered, but {len(unknown)} validation gap(s) remain."
+            summary = f"The analysis is reasonably covered, but {len(unknown)} information gap(s) remain."
         else:
-            summary = f"The opportunity still has {len(unknown)} important validation gaps before a build decision."
+            summary = f"The analysis still has {len(unknown)} important information gap(s); this does not trigger a manual validation workflow."
 
         return {
             "validation_score": validation_score,
