@@ -84,7 +84,7 @@ def main() -> int:
                 trend_score=row[58] or 0, ranking_score=row[59] or 0,
                 portfolio_status=row[60] or "WATCH", created_at=row[61],
             )
-            AutonomousOpportunityPipeline.process(opportunity, analysis)
+            AutonomousOpportunityPipeline.process(opportunity, analysis, notify=False)
             processed += 1
         except Exception as exc:
             failed += 1

@@ -1,0 +1,253 @@
+from __future__ import annotations
+
+import hashlib
+from typing import Any
+
+import requests
+
+from config.settings import (
+    TELEGRAM_ALERTS_ENABLED,
+    TELEGRAM_BOT_TOKEN,
+    TELEGRAM_CHAT_ID,
+    TELEGRAM_MIN_CASH_SCORE,
+    TELEGRAM_MIN_CONFIDENCE,
+    TELEGRAM_MIN_VALIDATION_SCORE,
+    TELEGRAM_PUBLIC_URL,
+    TELEGRAM_TIMEOUT_SECONDS,
+)
+from database.alert_repository import AlertRepository
+
+
+class TelegramAlertService:
+    """Send high-signal, idempotent opportunity alerts to Telegram.
+
+    Telegram delivery is best-effort: a notification failure must never fail
+    the analysis/refresh pipeline.
+    """
+
+    API_BASE = "https://api.telegram.org"
+
+    def __init__(self) -> None:
+        self.repository = AlertRepository()
+
+    @property
+    def configured(self) -> bool:
+        return bool(
+            TELEGRAM_ALERTS_ENABLED
+            and TELEGRAM_BOT_TOKEN
+            and TELEGRAM_CHAT_ID
+        )
+
+    @staticmethod
+    def _text(value: Any, fallback: str = "Unknown") -> str:
+        text = str(value or "").strip()
+        return text if text else fallback
+
+    @staticmethod
+    def _fingerprint(*parts: Any) -> str:
+        raw = "|".join(str(part or "").strip() for part in parts)
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+
+    @classmethod
+    def _should_alert(
+        cls,
+        analysis: dict[str, Any],
+        validation: dict[str, Any],
+        decision: dict[str, Any],
+        previous_decision: dict[str, Any] | None,
+    ) -> tuple[str | None, str]:
+        effective = str(
+            decision.get("effective_decision")
+            or decision.get("recommended_decision")
+            or "WATCH"
+        ).upper()
+
+        cash_score = int(analysis.get("cash_machine_score", 0) or 0)
+        validation_score = int(validation.get("validation_score", 0) or 0)
+        confidence_raw = analysis.get("confidence", 0)
+        confidence = int(confidence_raw or 0)
+
+        qualifies = (
+            effective == "BUILD"
+            and cash_score >= TELEGRAM_MIN_CASH_SCORE
+            and validation_score >= TELEGRAM_MIN_VALIDATION_SCORE
+            and confidence >= TELEGRAM_MIN_CONFIDENCE
+        )
+        if not qualifies:
+            return None, ""
+
+        previous = str(
+            (previous_decision or {}).get("decision") or ""
+        ).upper()
+
+        if previous != "BUILD":
+            return "BUILD_SIGNAL", "The opportunity now qualifies as a high-signal BUILD candidate."
+
+        # Do not re-notify on every run while the opportunity stays BUILD.
+        # A future re-entry into BUILD after leaving it will be eligible again.
+        return None, ""
+
+    @staticmethod
+    def _message(
+        opportunity: Any,
+        analysis: dict[str, Any],
+        validation: dict[str, Any],
+        decision: dict[str, Any],
+        lifecycle: dict[str, Any],
+        reason: str,
+    ) -> str:
+        title = TelegramAlertService._text(getattr(opportunity, "title", None))
+        source = TelegramAlertService._text(getattr(opportunity, "source", None))
+        cash_score = int(analysis.get("cash_machine_score", 0) or 0)
+        validation_score = int(validation.get("validation_score", 0) or 0)
+        confidence = int(analysis.get("confidence", 0) or 0)
+        trend_score = int(analysis.get("trend_score", 0) or 0)
+        decision_label = TelegramAlertService._text(
+            decision.get("decision_label"),
+            "BUILD",
+        )
+        next_action = TelegramAlertService._text(
+            decision.get("next_action") or analysis.get("next_action"),
+            "Review the opportunity.",
+        )
+        lifecycle_stage = TelegramAlertService._text(
+            lifecycle.get("current_label"),
+            "Building",
+        )
+        problem = TelegramAlertService._text(
+            analysis.get("problem"),
+            "No problem summary available.",
+        )
+        risk = TelegramAlertService._text(
+            analysis.get("biggest_risk"),
+            "Unknown",
+        )
+
+        lines = [
+            "🚨 <b>Cash Machine Signal</b>",
+            "",
+            f"<b>{TelegramAlertService._escape_html(title)}</b>",
+            f"Source: {TelegramAlertService._escape_html(source)}",
+            "",
+            f"💰 Cash Score: <b>{cash_score}/100</b>",
+            f"✅ Validation: <b>{validation_score}/100</b>",
+            f"🎯 Confidence: <b>{confidence}/10</b>",
+            f"📈 Trend Score: <b>{trend_score}</b>",
+            f"🧠 Decision: <b>{TelegramAlertService._escape_html(decision_label)}</b>",
+            f"🔄 Lifecycle: {TelegramAlertService._escape_html(lifecycle_stage)}",
+            "",
+            f"<b>Why it matters</b>\n{TelegramAlertService._escape_html(problem)}",
+            "",
+            f"<b>Biggest risk</b>\n{TelegramAlertService._escape_html(risk)}",
+            "",
+            f"<b>Next action</b>\n{TelegramAlertService._escape_html(next_action)}",
+            "",
+            f"<i>{TelegramAlertService._escape_html(reason)}</i>",
+        ]
+        return "\n".join(lines)
+
+    @staticmethod
+    def _escape_html(value: str) -> str:
+        return (
+            str(value)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
+    def _send(self, message: str, url: str | None = None) -> dict[str, Any]:
+        endpoint = f"{self.API_BASE}/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload: dict[str, Any] = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": message,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        }
+        if url:
+            payload["reply_markup"] = {
+                "inline_keyboard": [
+                    [{"text": "Open opportunity", "url": url}]
+                ]
+            }
+
+        response = requests.post(
+            endpoint,
+            json=payload,
+            timeout=TELEGRAM_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        body = response.json()
+        if not body.get("ok"):
+            raise RuntimeError(body.get("description") or "Telegram API returned ok=false.")
+        return body
+
+    def notify(
+        self,
+        opportunity: Any,
+        analysis: dict[str, Any],
+        validation: dict[str, Any],
+        decision: dict[str, Any],
+        lifecycle: dict[str, Any],
+        previous_decision: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if not self.configured:
+            return {"sent": False, "reason": "telegram_not_configured"}
+
+        alert_type, reason = self._should_alert(
+            analysis,
+            validation,
+            decision,
+            previous_decision,
+        )
+        if not alert_type:
+            return {"sent": False, "reason": "threshold_not_met"}
+
+        opportunity_id = int(getattr(opportunity, "id"))
+        current_score = int(analysis.get("cash_machine_score", 0) or 0)
+        current_validation = int(validation.get("validation_score", 0) or 0)
+        previous = str((previous_decision or {}).get("decision") or "NONE").upper()
+
+        fingerprint = self._fingerprint(
+            alert_type,
+            previous,
+            decision.get("effective_decision"),
+            current_score,
+            current_validation,
+            analysis.get("id"),
+        )
+        if self.repository.exists(opportunity_id, alert_type, fingerprint):
+            return {"sent": False, "reason": "duplicate"}
+
+        message = self._message(
+            opportunity,
+            analysis,
+            validation,
+            decision,
+            lifecycle,
+            reason,
+        )
+
+        url = None
+        if TELEGRAM_PUBLIC_URL:
+            url = f"{TELEGRAM_PUBLIC_URL}/opportunities/{opportunity_id}"
+
+        try:
+            self._send(message, url=url)
+        except Exception as exc:
+            # Do not record failed delivery, allowing a future run to retry.
+            print(f"[WARN] Telegram alert failed: {exc}")
+            return {"sent": False, "reason": "delivery_failed"}
+
+        self.repository.record(opportunity_id, alert_type, fingerprint)
+        print(
+            f"[INFO] Telegram alert sent for opportunity {opportunity_id} "
+            f"({alert_type})."
+        )
+        return {
+            "sent": True,
+            "alert_type": alert_type,
+            "fingerprint": fingerprint,
+        }
+
+    def close(self) -> None:
+        self.repository.close()

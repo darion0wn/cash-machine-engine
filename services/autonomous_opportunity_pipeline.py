@@ -10,6 +10,7 @@ from services.opportunity_lifecycle import OpportunityLifecycle
 from services.revenue_simulator import RevenueSimulator
 from services.validation_framework import OpportunityValidationFramework
 from services.evidence_tracker import EvidenceTracker
+from services.telegram_alert_service import TelegramAlertService
 
 
 class AutonomousOpportunityPipeline:
@@ -27,7 +28,7 @@ class AutonomousOpportunityPipeline:
         return data
 
     @staticmethod
-    def process(opportunity: Any, analysis: Any) -> dict[str, Any]:
+    def process(opportunity: Any, analysis: Any, notify: bool = True) -> dict[str, Any]:
         analysis_data = AutonomousOpportunityPipeline._analysis_dict(analysis)
 
         validation = OpportunityValidationFramework.evaluate(analysis_data)
@@ -36,6 +37,7 @@ class AutonomousOpportunityPipeline:
         tracker = EvidenceTracker()
         founder_decision = FounderDecision()
         lifecycle = OpportunityLifecycle()
+        telegram = TelegramAlertService() if notify else None
 
         try:
             signals = collector.collect(opportunity, analysis_data)
@@ -74,14 +76,34 @@ class AutonomousOpportunityPipeline:
                 validation,
             )
 
+            lifecycle_data = lifecycle.get(
+                int(opportunity.id),
+                {**analysis_data, "founder_decision": decision},
+            )
+
+            alert = {"sent": False, "reason": "notifications_disabled"}
+            if telegram is not None:
+                alert = telegram.notify(
+                    opportunity,
+                    analysis_data,
+                    validation,
+                    decision,
+                    lifecycle_data,
+                    previous_decision=existing,
+                )
+
             return {
                 "validation": validation,
                 "evidence_tracking": evidence,
                 "decision": decision,
                 "decision_context": decision_context,
+                "lifecycle": lifecycle_data,
+                "telegram_alert": alert,
             }
         finally:
             collector.close()
             tracker.close()
             founder_decision.close()
             lifecycle.close()
+            if telegram is not None:
+                telegram.close()

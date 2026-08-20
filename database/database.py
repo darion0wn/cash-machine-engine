@@ -244,6 +244,17 @@ class Database:
             )
             """,
             """
+            CREATE TABLE IF NOT EXISTS alert_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                opportunity_id INTEGER NOT NULL,
+                alert_type TEXT NOT NULL,
+                fingerprint TEXT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (opportunity_id) REFERENCES opportunities(id) ON DELETE CASCADE,
+                UNIQUE(opportunity_id, alert_type, fingerprint)
+            )
+            """,
+            """
             CREATE TABLE IF NOT EXISTS analyses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 opportunity_id INTEGER NOT NULL,
@@ -324,6 +335,12 @@ class Database:
             """
             CREATE INDEX IF NOT EXISTS idx_founder_decisions_opportunity
             ON founder_decisions(opportunity_id, decided_at DESC, id DESC)
+            """
+        )
+        self.conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_alert_events_opportunity
+            ON alert_events(opportunity_id, created_at DESC)
             """
         )
         self.conn.commit()
@@ -420,6 +437,16 @@ class Database:
             )
             """,
             """
+            CREATE TABLE IF NOT EXISTS alert_events (
+                id BIGSERIAL PRIMARY KEY,
+                opportunity_id BIGINT NOT NULL REFERENCES opportunities(id) ON DELETE CASCADE,
+                alert_type TEXT NOT NULL,
+                fingerprint TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(opportunity_id, alert_type, fingerprint)
+            )
+            """,
+            """
             CREATE TABLE IF NOT EXISTS analyses (
                 id BIGSERIAL PRIMARY KEY,
                 opportunity_id BIGINT NOT NULL REFERENCES opportunities(id) ON DELETE CASCADE,
@@ -479,6 +506,7 @@ class Database:
             "CREATE INDEX IF NOT EXISTS idx_validation_evidence_step ON validation_evidence(opportunity_id, validation_key, captured_at DESC)",
             "CREATE INDEX IF NOT EXISTS idx_opportunity_lifecycle_opportunity_time ON opportunity_lifecycle(opportunity_id, changed_at DESC, id DESC)",
             "CREATE INDEX IF NOT EXISTS idx_founder_decisions_opportunity ON founder_decisions(opportunity_id, decided_at DESC, id DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_alert_events_opportunity ON alert_events(opportunity_id, created_at DESC)",
         ]:
             cursor.execute(statement)
         self.conn.commit()
