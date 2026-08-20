@@ -314,63 +314,6 @@
             </div>
           </div>
 
-          <div class="validation-plan-card mb-4">
-            <div class="validation-plan-head">
-              <div>
-                <div class="validation-plan-kicker">Validation plan</div>
-                <h3 class="section-title mb-1">Prove it before building</h3>
-                <p class="validation-plan-summary mb-0">{{ detail.analysis.validation_plan.summary }}</p>
-              </div>
-              <div class="validation-plan-score">
-                <span>Plan progress</span>
-                <strong>{{ detail.analysis.validation_plan.completed_steps }}/{{ detail.analysis.validation_plan.total_steps }}</strong>
-                <small>{{ detail.analysis.validation_plan.pending_steps }} pending</small>
-              </div>
-            </div>
-
-            {% if detail.analysis.validation_plan.plan %}
-            <div class="validation-plan-list">
-              {% for step in detail.analysis.validation_plan.plan %}
-              <div class="validation-plan-item">
-                <div class="validation-plan-item-head">
-                  <div>
-                    <span class="validation-priority validation-priority-{{ step.priority|lower }}">{{ step.priority }}</span>
-                    <strong>{{ step.title }}</strong>
-                  </div>
-                  <span class="validation-plan-status">{{ step.status }}</span>
-                </div>
-
-                <div class="validation-plan-grid">
-                  <div>
-                    <span class="validation-plan-label">Goal</span>
-                    <p>{{ step.goal }}</p>
-                  </div>
-                  <div>
-                    <span class="validation-plan-label">Evidence to collect</span>
-                    <p>{{ step.evidence_to_collect }}</p>
-                  </div>
-                  <div>
-                    <span class="validation-plan-label validation-pass-label">Pass</span>
-                    <p>{{ step.pass_criteria }}</p>
-                  </div>
-                  <div>
-                    <span class="validation-plan-label validation-fail-label">Fail</span>
-                    <p>{{ step.fail_criteria }}</p>
-                  </div>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-
-            <div class="validation-plan-next mt-3">
-              <strong>Next validation action:</strong>
-              {{ detail.analysis.validation_plan.next_step }}
-            </div>
-            {% else %}
-            <div class="validation-empty">No validation steps are available yet.</div>
-            {% endif %}
-          </div>
-
           <div class="lifecycle-card mb-4">
             <div class="card-body">
               <div class="validation-framework-kicker">Opportunity lifecycle</div>
@@ -412,17 +355,12 @@
                 </div>
 
                 <div class="col-lg-5">
-                  <form method="post" action="{{ url_for('pages.transition_lifecycle', opportunity_id=detail.opportunity.id) }}">
-                    <label class="form-label">Move opportunity</label>
-                    <select name="stage" class="form-select mb-2">
-                      {% for stage in detail.analysis.lifecycle.stages %}
-                      <option value="{{ stage.key }}" {% if stage.active %}selected{% endif %}>{{ stage.label }}</option>
-                      {% endfor %}
-                    </select>
-                    <textarea name="reason" class="form-control mb-2" rows="3" placeholder="Why are we moving it to this stage?"></textarea>
-                    <button class="btn btn-primary" type="submit">Save lifecycle stage</button>
-                  </form>
-                  <div class="small text-muted mt-2">Next action: {{ detail.analysis.lifecycle.next_actions[0] if detail.analysis.lifecycle.next_actions else 'Review the opportunity.' }}</div>
+                  <div class="validation-empty h-100 d-flex align-items-center">
+                    <div>
+                      <strong>Automatic lifecycle</strong>
+                      <div class="small mt-1">The current stage is inferred automatically from the analysis and decision engine. No manual transition is required.</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -431,9 +369,9 @@
           <div class="founder-decision-card mb-4">
             <div class="founder-decision-head">
               <div>
-                <div class="founder-decision-kicker">Founder decision</div>
-                <h3 class="section-title mb-1">Evidence-backed decision</h3>
-                <p class="founder-decision-summary mb-0">Use collected evidence to move from signal to a real founder decision.</p>
+                <div class="founder-decision-kicker">Decision engine</div>
+                <h3 class="section-title mb-1">Automatic decision</h3>
+                <p class="founder-decision-summary mb-0">The decision is derived automatically from the existing AI analysis, ranking and validation quality. No manual input is required.</p>
               </div>
               <div class="founder-decision-badge founder-decision-{{ detail.analysis.founder_decision.effective_decision|lower }}">
                 {{ detail.analysis.founder_decision.effective_decision }}
@@ -448,111 +386,13 @@
             </div>
 
             <div class="founder-decision-rationale mt-3">
-              <strong>Recommendation:</strong> {{ detail.analysis.founder_decision.engine_rationale }}<br>
+              <strong>Decision basis:</strong> {{ detail.analysis.founder_decision.engine_rationale }}<br>
               <strong>Next action:</strong> {{ detail.analysis.founder_decision.next_action }}
             </div>
 
-            <form method="post" action="{{ url_for('pages.save_founder_decision', opportunity_id=detail.opportunity.id) }}" class="founder-decision-form mt-3">
-              <div class="row g-2">
-                <div class="col-md-4">
-                  <label class="form-label">Founder decision</label>
-                  <select name="decision" class="form-select">
-                    {% for option in ['BUILD', 'VALIDATE', 'WATCH', 'KILL'] %}
-                    <option value="{{ option }}" {% if detail.analysis.founder_decision.effective_decision == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="col-md-8">
-                  <label class="form-label">Rationale</label>
-                  <input name="rationale" class="form-control" value="{{ detail.analysis.founder_decision.rationale }}" placeholder="Why are we taking this decision?">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Next action</label>
-                  <input name="next_action" class="form-control" value="{{ detail.analysis.founder_decision.next_action }}" placeholder="What should we do next?">
-                </div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-3">
-                <button class="btn btn-primary" type="submit">Save founder decision</button>
-                <a class="btn btn-outline-secondary" href="{{ url_for('pages.compare', ids=detail.opportunity.id) }}">Compare opportunity</a>
-              </div>
-            </form>
-          </div>
-
-          <div class="evidence-tracking-card mb-4">
-            <div class="evidence-tracking-head">
-              <div>
-                <div class="evidence-tracking-kicker">Evidence tracking</div>
-                <h3 class="section-title mb-1">What have we actually learned?</h3>
-                <p class="evidence-tracking-summary mb-0">Founder evidence can override AI inference when we record a real result.</p>
-              </div>
-              <div class="evidence-tracking-count"><strong>{{ detail.analysis.evidence_tracking.total }}</strong><span>records</span></div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <a class="btn btn-outline-secondary" href="{{ url_for('pages.compare', ids=detail.opportunity.id) }}">Compare opportunity</a>
             </div>
-
-            <div class="row g-3 mt-1">
-              <div class="col-4"><div class="evidence-count evidence-count-pass"><span>PASS</span><strong>{{ detail.analysis.evidence_tracking.passed }}</strong></div></div>
-              <div class="col-4"><div class="evidence-count evidence-count-partial"><span>PARTIAL</span><strong>{{ detail.analysis.evidence_tracking.partial }}</strong></div></div>
-              <div class="col-4"><div class="evidence-count evidence-count-fail"><span>FAIL</span><strong>{{ detail.analysis.evidence_tracking.failed }}</strong></div></div>
-            </div>
-
-            {% if detail.analysis.evidence_tracking["items"] %}
-            <div class="evidence-list mt-3">
-              {% for item in detail.analysis.evidence_tracking["items"] %}
-              <div class="evidence-record evidence-status-{{ item.status|lower }}">
-                <div class="evidence-record-head">
-                  <strong>{{ item.validation_key.replace('_', ' ').title() }}</strong>
-                  <span>{{ item.status }} · {{ item.confidence }}</span>
-                </div>
-                <p class="mb-1">{{ item.observation }}</p>
-                <small>{{ item.source or 'Founder note' }} · {{ item.captured_at }}</small>
-                {% if item.notes %}<div class="evidence-record-notes">{{ item.notes }}</div>{% endif %}
-              </div>
-              {% endfor %}
-            </div>
-            {% else %}
-              <div class="evidence-empty mt-3">No founder evidence recorded yet. Use the form below after completing a validation test.</div>
-            {% endif %}
-
-            <form method="post" action="{{ url_for('pages.add_evidence', opportunity_id=detail.opportunity.id) }}" class="evidence-form mt-3">
-              <div class="row g-2">
-                <div class="col-md-4">
-                  <label class="form-label">Validation step</label>
-                  <select name="validation_key" class="form-select">
-                    {% for step in detail.analysis.validation_plan.plan %}
-                    <option value="{{ step.key }}">{{ step.title }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label">Result</label>
-                  <select name="status" class="form-select">
-                    <option value="PASS">PASS</option>
-                    <option value="PARTIAL">PARTIAL</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label">Confidence</label>
-                  <select name="confidence" class="form-select">
-                    <option value="HIGH">HIGH</option>
-                    <option value="MEDIUM" selected>MEDIUM</option>
-                    <option value="LOW">LOW</option>
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label">Source</label>
-                  <input name="source" class="form-control" placeholder="Founder interview, landing test, email...">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Observation</label>
-                  <textarea name="observation" class="form-control" rows="2" placeholder="What did we actually observe?"></textarea>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Notes</label>
-                  <input name="notes" class="form-control" placeholder="Optional context, quote, link, or follow-up.">
-                </div>
-              </div>
-              <button class="btn btn-outline-primary mt-3" type="submit">Add evidence</button>
-            </form>
           </div>
 
           <div class="mb-4">
