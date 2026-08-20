@@ -151,11 +151,11 @@ class SchedulerService:
                     FROM refresh_runs
                     WHERE started_at >= ?
                       AND started_at < ?
-                      AND trigger LIKE 'scheduled:%'
+                      AND trigger LIKE ?
                     ORDER BY id DESC
                     LIMIT 1
                     """,
-                    (day_start, day_end),
+                    (day_start, day_end, "scheduled:%"),
                 ).fetchone()
             else:
                 row = db.conn.execute(
