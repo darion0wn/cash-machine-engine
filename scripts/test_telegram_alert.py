@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
+import json
+import urllib.request
 
 from config.settings import (
     TELEGRAM_ALERTS_ENABLED,
     TELEGRAM_BOT_TOKEN,
     TELEGRAM_CHAT_ID,
+    TELEGRAM_TIMEOUT_SECONDS,
 )
-from services.telegram_alert_service import TelegramAlertService
 
 
 def main() -> int:
@@ -18,16 +19,40 @@ def main() -> int:
         )
         return 2
 
-    service = TelegramAlertService()
-    try:
-        result = service._send(
+    endpoint = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": (
             "<b>Cash Machine Engine Telegram Test</b>\\n\\n"
             "Telegram delivery is configured correctly."
-        )
-        print({"sent": bool(result.get("ok"))})
-        return 0 if result.get("ok") else 1
-    finally:
-        service.close()
+        ),
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+
+    request = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(
+            request,
+            timeout=TELEGRAM_TIMEOUT_SECONDS,
+        ) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:
+        print(f"Telegram test failed: {exc}")
+        return 1
+
+    print({"sent": bool(body.get("ok"))})
+    if not body.get("ok"):
+        print(body.get("description") or "Telegram API returned ok=false.")
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
