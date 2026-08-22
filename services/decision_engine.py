@@ -175,9 +175,11 @@ class DecisionEngine:
         )
         score = cls._score(analysis)
 
+        # The explicit AI build verdict is the source of truth.
+        # portfolio_status is derived from ranking and is only a legacy fallback.
         status = str(
-            analysis.get("portfolio_status")
-            or analysis.get("build_verdict")
+            analysis.get("build_verdict")
+            or analysis.get("portfolio_status")
             or "WATCH"
         ).upper()
 

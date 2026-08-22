@@ -37,9 +37,12 @@ class FounderDecision:
         founder notes and never required to promote/demote an opportunity.
         """
         analysis = analysis or {}
+        # The completed AI analysis is the primary verdict source.
+        # portfolio_status is a derived/ranking field and must not override
+        # an explicit BUILD/WATCH/SKIP verdict from the analysis.
         ai_verdict = str(
-            analysis.get("portfolio_status")
-            or analysis.get("build_verdict")
+            analysis.get("build_verdict")
+            or analysis.get("portfolio_status")
             or "WATCH"
         ).upper()
 
