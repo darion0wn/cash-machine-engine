@@ -37,12 +37,9 @@ class FounderDecision:
         founder notes and never required to promote/demote an opportunity.
         """
         analysis = analysis or {}
-        # The completed AI analysis is the primary verdict source.
-        # portfolio_status is a derived/ranking field and must not override
-        # an explicit BUILD/WATCH/SKIP verdict from the analysis.
         ai_verdict = str(
-            analysis.get("build_verdict")
-            or analysis.get("portfolio_status")
+            analysis.get("portfolio_status")
+            or analysis.get("build_verdict")
             or "WATCH"
         ).upper()
 
@@ -122,21 +119,12 @@ class FounderDecision:
         ):
             return latest
 
-        decision_id = self.repository.save(
+        return self.repository.save_engine(
             opportunity_id,
             decision,
             rationale,
             next_action,
-            source="engine",
         )
-        return {
-            "id": decision_id,
-            "opportunity_id": opportunity_id,
-            "decision": decision,
-            "rationale": rationale,
-            "next_action": next_action,
-            "source": "engine",
-        }
 
     def latest(self, opportunity_id: int) -> dict | None:
         return self.repository.latest(opportunity_id)
