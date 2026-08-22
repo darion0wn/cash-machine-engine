@@ -199,9 +199,9 @@ class DashboardService:
                 COUNT(*) AS total_analyses,
                 COALESCE(ROUND(AVG(cash_machine_score), 1), 0) AS avg_cash_score,
                 COALESCE(ROUND(AVG(ranking_score), 1), 0) AS avg_ranking_score,
-                SUM(CASE WHEN portfolio_status = 'BUILD' THEN 1 ELSE 0 END) AS build_count,
-                SUM(CASE WHEN portfolio_status = 'WATCH' THEN 1 ELSE 0 END) AS watch_count,
-                SUM(CASE WHEN portfolio_status = 'SKIP' THEN 1 ELSE 0 END) AS skip_count,
+                SUM(CASE WHEN build_verdict = 'BUILD' THEN 1 ELSE 0 END) AS build_count,
+                SUM(CASE WHEN build_verdict = 'WATCH' THEN 1 ELSE 0 END) AS watch_count,
+                SUM(CASE WHEN build_verdict = 'SKIP' THEN 1 ELSE 0 END) AS skip_count,
                 MAX(created_at) AS latest_analysis_at
             FROM analyses
             """
@@ -379,7 +379,7 @@ class DashboardService:
                     "url": row.get("url") or "",
                     "cash_machine_score": row.get("cash_machine_score") or 0,
                     "ranking_score": row.get("ranking_score") or 0,
-                    "portfolio_status": row.get("portfolio_status") or "WATCH",
+                    "portfolio_status": row.get("build_verdict") or row.get("portfolio_status") or "WATCH",
                     "build_verdict": row.get("build_verdict") or "Unknown",
                     "primary_topic": self._primary_topic(
                         merged_topics,
@@ -390,7 +390,7 @@ class DashboardService:
                         row.get("analysis_created_at")
                     ),
                     "status_badge": self._status_badge(
-                        row.get("portfolio_status")
+                        row.get("build_verdict") or row.get("build_verdict") or row.get("portfolio_status")
                     ),
                 }
             )
@@ -440,7 +440,7 @@ class DashboardService:
                     "title": row.get("title") or "",
                     "cash_machine_score": row.get("cash_machine_score") or 0,
                     "ranking_score": row.get("ranking_score") or 0,
-                    "portfolio_status": row.get("portfolio_status") or "WATCH",
+                    "portfolio_status": row.get("build_verdict") or row.get("portfolio_status") or "WATCH",
                     "build_verdict": row.get("build_verdict") or "Unknown",
                     "topic": self._primary_topic(
                         analysis_topics,
@@ -665,7 +665,7 @@ class DashboardService:
                 ),
                 "trend_score": row.get("trend_score") or 0,
                 "ranking_score": row.get("ranking_score") or 0,
-                "portfolio_status": row.get("portfolio_status") or "WATCH",
+                "portfolio_status": row.get("build_verdict") or row.get("portfolio_status") or "WATCH",
                 "portfolio_badge": self._status_badge(
                     row.get("portfolio_status")
                 ),

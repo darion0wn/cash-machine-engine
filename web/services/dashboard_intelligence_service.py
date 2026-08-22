@@ -128,19 +128,19 @@ class DashboardIntelligenceService:
                 COUNT(*) AS new_analyses,
                 SUM(
                     CASE
-                        WHEN portfolio_status = 'BUILD' THEN 1
+                        WHEN build_verdict = 'BUILD' THEN 1
                         ELSE 0
                     END
                 ) AS new_build,
                 SUM(
                     CASE
-                        WHEN portfolio_status = 'WATCH' THEN 1
+                        WHEN build_verdict = 'WATCH' THEN 1
                         ELSE 0
                     END
                 ) AS new_watch,
                 SUM(
                     CASE
-                        WHEN portfolio_status = 'SKIP' THEN 1
+                        WHEN build_verdict = 'SKIP' THEN 1
                         ELSE 0
                     END
                 ) AS new_skip
@@ -219,7 +219,7 @@ class DashboardIntelligenceService:
             ),
             "ranking_score": self._safe_int(row.get("ranking_score")),
             "build_verdict": row.get("build_verdict") or "WATCH",
-            "portfolio_status": row.get("portfolio_status") or "WATCH",
+            "portfolio_status": row.get("build_verdict") or row.get("portfolio_status") or "WATCH",
             "next_action": (
                 row.get("next_action")
                 or "Open the opportunity and validate the signal."
@@ -241,9 +241,9 @@ class DashboardIntelligenceService:
         row = self._query_one(
             """
             SELECT
-                COALESCE(SUM(CASE WHEN portfolio_status = 'BUILD' THEN 1 ELSE 0 END), 0) AS build,
-                COALESCE(SUM(CASE WHEN portfolio_status = 'WATCH' THEN 1 ELSE 0 END), 0) AS watch,
-                COALESCE(SUM(CASE WHEN portfolio_status = 'SKIP' THEN 1 ELSE 0 END), 0) AS skip
+                COALESCE(SUM(CASE WHEN build_verdict = 'BUILD' THEN 1 ELSE 0 END), 0) AS build,
+                COALESCE(SUM(CASE WHEN build_verdict = 'WATCH' THEN 1 ELSE 0 END), 0) AS watch,
+                COALESCE(SUM(CASE WHEN build_verdict = 'SKIP' THEN 1 ELSE 0 END), 0) AS skip
             FROM analyses
             """
         ) or {}
@@ -370,7 +370,7 @@ class DashboardIntelligenceService:
         if focus:
             title = focus["title"]
             rank = focus["ranking_score"]
-            verdict = focus["portfolio_status"]
+            verdict = focus.get("build_verdict") or focus.get("portfolio_status") or "WATCH"
 
             if new_counts["new_analyses"] > 0:
                 if top_topic:

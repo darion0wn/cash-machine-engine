@@ -76,16 +76,12 @@ class TelegramAlertService:
         if not qualifies:
             return None, ""
 
-        previous = str(
-            (previous_decision or {}).get("decision") or ""
-        ).upper()
-
-        if previous != "BUILD":
-            return "BUILD_SIGNAL", "The opportunity now qualifies as a high-signal BUILD candidate."
-
-        # Do not re-notify on every run while the opportunity stays BUILD.
-        # A future re-entry into BUILD after leaving it will be eligible again.
-        return None, ""
+        # Alert delivery is idempotent at the repository layer. Returning an
+        # alert candidate whenever the thresholds are met allows a newly
+        # qualifying BUILD to notify even when the persisted decision was
+        # already BUILD before the alert system saw it. The alert fingerprint
+        # prevents duplicate sends when nothing materially changed.
+        return "BUILD_SIGNAL", "The opportunity qualifies as a high-signal BUILD candidate."
 
     @staticmethod
     def _message(

@@ -38,8 +38,8 @@ class FounderDecision:
         """
         analysis = analysis or {}
         ai_verdict = str(
-            analysis.get("portfolio_status")
-            or analysis.get("build_verdict")
+            analysis.get("build_verdict")
+            or analysis.get("portfolio_status")
             or "WATCH"
         ).upper()
 
