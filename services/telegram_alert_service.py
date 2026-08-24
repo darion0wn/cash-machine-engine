@@ -11,7 +11,6 @@ from config.settings import (
     TELEGRAM_CHAT_ID,
     TELEGRAM_MIN_CASH_SCORE,
     TELEGRAM_MIN_CONFIDENCE,
-    TELEGRAM_MIN_VALIDATION_SCORE,
     TELEGRAM_PUBLIC_URL,
     TELEGRAM_TIMEOUT_SECONDS,
 )
@@ -70,13 +69,15 @@ class TelegramAlertService:
         qualifies = (
             effective == "BUILD"
             and cash_score >= TELEGRAM_MIN_CASH_SCORE
-            and validation_score >= TELEGRAM_MIN_VALIDATION_SCORE
             and confidence >= TELEGRAM_MIN_CONFIDENCE
         )
         if not qualifies:
             return None, ""
 
-        # Alert delivery is idempotent at the repository layer. Returning an
+        # Alert delivery is idempotent at the repository layer. Validation is
+        # informative here, not a second decision gate: the AI build verdict,
+        # cash score and analysis confidence determine whether the opportunity
+        # is worth interrupting the founder for. Returning an
         # alert candidate whenever the thresholds are met allows a newly
         # qualifying BUILD to notify even when the persisted decision was
         # already BUILD before the alert system saw it. The alert fingerprint

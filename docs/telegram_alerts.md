@@ -11,7 +11,6 @@ TELEGRAM_BOT_TOKEN=<bot token>
 TELEGRAM_CHAT_ID=<target chat id>
 TELEGRAM_PUBLIC_URL=https://<public app domain>
 TELEGRAM_MIN_CASH_SCORE=80
-TELEGRAM_MIN_VALIDATION_SCORE=75
 TELEGRAM_MIN_CONFIDENCE=7
 TELEGRAM_TIMEOUT_SECONDS=10
 ```
@@ -22,11 +21,12 @@ TELEGRAM_TIMEOUT_SECONDS=10
 ## What is considered alert-worthy
 
 An opportunity is sent to Telegram when the automatic engine decision is
-`BUILD` and all three thresholds are met:
+`BUILD` and the following signal thresholds are met:
 
 - Cash Machine Score >= 80
-- Validation Score >= 75
 - Analysis confidence >= 7/10
+
+Validation remains informational and is included in the alert, but it is not a second gate on the AI decision.
 
 The same opportunity is not repeatedly notified while it remains `BUILD`. If it
 leaves `BUILD` and later re-enters `BUILD`, the alert is eligible again.

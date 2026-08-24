@@ -59,8 +59,5 @@ if not _telegram_public_url:
         _telegram_public_url = f"https://{_railway_public_domain}"
 TELEGRAM_PUBLIC_URL = _telegram_public_url
 TELEGRAM_MIN_CASH_SCORE = int(os.getenv("TELEGRAM_MIN_CASH_SCORE", "80"))
-TELEGRAM_MIN_VALIDATION_SCORE = int(
-    os.getenv("TELEGRAM_MIN_VALIDATION_SCORE", "75")
-)
 TELEGRAM_MIN_CONFIDENCE = int(os.getenv("TELEGRAM_MIN_CONFIDENCE", "7"))
 TELEGRAM_TIMEOUT_SECONDS = float(os.getenv("TELEGRAM_TIMEOUT_SECONDS", "10"))
