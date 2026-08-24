@@ -37,7 +37,19 @@ class AutonomousOpportunityPipeline:
         tracker = EvidenceTracker()
         founder_decision = FounderDecision()
         lifecycle = OpportunityLifecycle()
-        telegram = TelegramAlertService() if notify else None
+
+        # Reuse the database already opened by FounderDecision for Telegram.
+        # This avoids creating another Database() instance that reruns schema
+        # initialization and can block on PostgreSQL DDL locks.
+        telegram = None
+        if notify:
+            from database.alert_repository import AlertRepository
+
+            telegram = TelegramAlertService(
+                repository=AlertRepository(
+                    db=founder_decision.repository.db,
+                )
+            )
 
         try:
             signals = collector.collect(opportunity, analysis_data)
@@ -107,3 +119,4 @@ class AutonomousOpportunityPipeline:
             lifecycle.close()
             if telegram is not None:
                 telegram.close()
+

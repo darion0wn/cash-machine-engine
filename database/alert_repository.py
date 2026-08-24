@@ -6,8 +6,9 @@ from database.database import Database
 class AlertRepository:
     """Persistence for idempotent Telegram alert delivery."""
 
-    def __init__(self) -> None:
-        self.db = Database()
+    def __init__(self, db: Database | None = None) -> None:
+        self.db = db or Database()
+        self._owns_db = db is None
 
     def exists(
         self,
@@ -58,4 +59,5 @@ class AlertRepository:
         )
 
     def close(self) -> None:
-        self.db.conn.close()
+        if self._owns_db:
+            self.db.conn.close()

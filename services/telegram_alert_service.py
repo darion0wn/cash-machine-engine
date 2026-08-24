@@ -26,8 +26,11 @@ class TelegramAlertService:
 
     API_BASE = "https://api.telegram.org"
 
-    def __init__(self) -> None:
-        self.repository = AlertRepository()
+    def __init__(self, repository: AlertRepository | None = None) -> None:
+        # Reuse the pipeline's existing database connection when one is supplied.
+        # This prevents a second PostgreSQL initialization (CREATE TABLE/INDEX)
+        # from competing for schema locks during refresh/backfill runs.
+        self.repository = repository or AlertRepository()
 
     @property
     def configured(self) -> bool:
