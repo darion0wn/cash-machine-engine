@@ -86,7 +86,7 @@ class FavoritesService:
                     "cash_machine_score": row.get("cash_machine_score") or 0,
                     "ranking_score": row.get("ranking_score") or 0,
                     "trend_score": row.get("trend_score") or 0,
-                    "portfolio_status": row.get("portfolio_status") or "WATCH",
+                    "portfolio_status": row.get("build_verdict") or row.get("portfolio_status") or "WATCH",
                     "build_verdict": row.get("build_verdict") or "Unknown",
                     "primary_topic": topics[0] if topics else (row.get("category") or "Unknown"),
                     "topics": topics,

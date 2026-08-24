@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from collections import Counter
 from datetime import datetime
@@ -9,6 +10,7 @@ from typing import Any
 import mistune
 
 from .dashboard_service import DashboardService
+from database.database import Database
 
 
 class ReportsService:
@@ -283,44 +285,422 @@ class ReportsService:
 
         return report
 
+    @staticmethod
+    def _json_items(value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            try:
+                parsed = __import__("json").loads(value)
+                if isinstance(parsed, list):
+                    return [str(item).strip() for item in parsed if str(item).strip()]
+            except Exception:
+                pass
+        return []
+
+    def _database_report_content(self, row: dict) -> str:
+        key_evidence = self._json_items(row.get("key_evidence"))
+        red_flags = self._json_items(row.get("red_flags"))
+        topics = self._json_items(row.get("topics"))
+        recommendation = str(row.get("investment_recommendation") or "Unknown")
+        generated_at = self._format_datetime(row.get("created_at"))
+        return f"""# {int(row.get('cash_machine_score') or 0)} / 100
+
+**Verdict:** {row.get('build_verdict') or 'Unknown'}
+
+**Investment Recommendation:** {recommendation}
+
+**Confidence:** {int(row.get('confidence') or 0)}/10
+
+## Report Metadata
+
+| Field | Value |
+|-------|-------|
+| Opportunity ID | {row.get('opportunity_id')} |
+| Title | {row.get('title') or 'Unknown'} |
+| Source | {row.get('source') or 'Unknown'} |
+| URL | {row.get('url') or 'N/A'} |
+| Generated At | {generated_at} |
+
+## Problem Analysis
+
+### Problem
+
+{row.get('problem') or 'Unknown'}
+
+### Customer
+
+{row.get('customer') or 'Unknown'}
+
+### Ideal Customer
+
+{row.get('ideal_customer') or 'Unknown'}
+
+| Metric | Value |
+|-------|------:|
+| Pain Level | {int(row.get('pain_level') or 0)}/10 |
+| Urgency | {int(row.get('urgency') or 0)}/10 |
+
+### Current Solution
+
+{row.get('current_solution') or 'Unknown'}
+
+### Why Current Solution Fails
+
+{row.get('why_current_solution_fails') or 'Unknown'}
+
+## Market Analysis
+
+**Category:** {row.get('category') or 'Unknown'}
+
+**Market Size:** {row.get('market_size') or 'Unknown'}
+
+**Market Maturity:** {row.get('market_maturity') or 'Unknown'}
+
+**Competition Level:** {int(row.get('competition_level') or 0)}/10
+
+### Competitors
+
+{row.get('competition') or 'Unknown'}
+
+## Business Analysis
+
+### Business Model
+
+{row.get('business_model') or 'Unknown'}
+
+### Pricing Strategy
+
+{row.get('pricing_strategy') or 'Unknown'}
+
+### Competitive Advantage
+
+{row.get('competitive_advantage') or 'Unknown'}
+
+### MVP Description
+
+{row.get('mvp_description') or 'Unknown'}
+
+## Investment Evaluation
+
+| Category | Score |
+|----------|------:|
+| Problem | {int(row.get('problem_score') or 0)}/10 |
+| Market | {int(row.get('market_score') or 0)}/10 |
+| Competition | {int(row.get('competition_score') or 0)}/10 |
+| Business | {int(row.get('business_score') or 0)}/10 |
+| Execution | {int(row.get('execution_score') or 0)}/10 |
+| AI Leverage | {int(row.get('ai_leverage_score') or 0)}/10 |
+| Distribution | {int(row.get('distribution_score') or 0)}/10 |
+
+## Cash Machine Score
+
+**{int(row.get('cash_machine_score') or 0)}/100**
+
+**Build Verdict:** {row.get('build_verdict') or 'Unknown'}
+
+**Confidence:** {int(row.get('confidence') or 0)}/10
+
+### Confidence Reason
+
+{row.get('confidence_reason') or 'Unknown'}
+
+### Full Reasoning
+
+{row.get('reasoning') or 'Unknown'}
+
+## Key Evidence
+
+{chr(10).join(f'- {item}' for item in key_evidence) or '- None recorded'}
+
+## Red Flags
+
+{chr(10).join(f'- {item}' for item in red_flags) or '- None recorded'}
+
+## Biggest Risk
+
+{row.get('biggest_risk') or 'Unknown'}
+
+## Next Action
+
+{row.get('next_action') or 'Unknown'}
+
+## Recommended Next Steps
+
+{row.get('recommended_next_steps') or 'Unknown'}
+
+## Topics
+
+{chr(10).join(f'- {topic}' for topic in topics) or '- Unknown'}
+"""
+
+    def _database_reports(self) -> list[dict]:
+        db = Database()
+        try:
+            rows = db.conn.execute(
+                """
+                SELECT
+                    a.*, o.source, o.title, o.url
+                FROM analyses a
+                JOIN opportunities o ON o.id = a.opportunity_id
+                ORDER BY a.created_at DESC, a.id DESC
+                """
+            ).fetchall()
+            columns = [d[0] for d in (db.conn.execute('SELECT a.*, o.source, o.title, o.url FROM analyses a JOIN opportunities o ON o.id = a.opportunity_id LIMIT 1').description or [])]
+            parsed = [dict(zip(columns, row)) for row in rows]
+        finally:
+            db.conn.close()
+
+        reports = []
+        seen = set()
+        for row in parsed:
+            opportunity_id = int(row.get('opportunity_id') or 0)
+            if opportunity_id in seen:
+                continue
+            seen.add(opportunity_id)
+            content = self._database_report_content(row)
+            verdict = row.get('build_verdict') or 'Unknown'
+            report = {
+                'id': opportunity_id,
+                'opportunity_id': opportunity_id,
+                'title': row.get('title') or f'Report #{opportunity_id}',
+                'source': row.get('source') or 'Unknown',
+                'url': row.get('url') or '',
+                'cash_machine_score': int(row.get('cash_machine_score') or 0),
+                'verdict': verdict,
+                'recommendation': str(row.get('investment_recommendation') or 'Unknown'),
+                'confidence': int(row.get('confidence') or 0),
+                'generated_at': self._format_datetime(row.get('created_at')),
+                'reasoning_excerpt': self._compact_text(row.get('reasoning'), 180),
+                'next_action': self._compact_text(row.get('next_action'), 220),
+                'biggest_risk': self._compact_text(row.get('biggest_risk'), 220),
+                'recommended_next_steps': self._compact_text(row.get('recommended_next_steps'), 220),
+                'tone': self._verdict_tone(verdict),
+                'status_badge': self._status_badge(verdict),
+                'content': content,
+                'html': self._markdown(content),
+            }
+            reports.append(report)
+        return reports
+
+    @staticmethod
+    def _decode_list(value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+            except (TypeError, json.JSONDecodeError):
+                return []
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        return []
+
+    @classmethod
+    def _database_report_content(cls, row: dict[str, Any]) -> str:
+        key_evidence = cls._decode_list(row.get("key_evidence"))
+        red_flags = cls._decode_list(row.get("red_flags"))
+        topics = cls._decode_list(row.get("topics"))
+        recommendation = str(row.get("investment_recommendation") or "Unknown")
+        generated_at = cls._format_datetime(row.get("created_at"))
+        bullets = lambda values: "\n".join(f"- {value}" for value in values) or "- None recorded"
+        topic_bullets = "\n".join(f"- {value}" for value in topics) or "- Unknown"
+        return f"""# {int(row.get('cash_machine_score') or 0)} / 100
+
+**Verdict:** {row.get('build_verdict') or 'Unknown'}
+
+**Investment Recommendation:** {recommendation}
+
+**Confidence:** {int(row.get('confidence') or 0)}/10
+
+| Field | Value |
+|-------|-------|
+| Opportunity ID | {row.get('opportunity_id')} |
+| Title | {row.get('title') or 'Unknown'} |
+| Source | {row.get('source') or 'Unknown'} |
+| URL | {row.get('url') or 'N/A'} |
+| Generated At | {generated_at} |
+
+## Problem Analysis
+
+### Problem
+{row.get('problem') or 'Unknown'}
+
+### Customer
+{row.get('customer') or 'Unknown'}
+
+### Ideal Customer
+{row.get('ideal_customer') or 'Unknown'}
+
+| Metric | Value |
+|-------|------:|
+| Pain Level | {int(row.get('pain_level') or 0)}/10 |
+| Urgency | {int(row.get('urgency') or 0)}/10 |
+
+### Current Solution
+{row.get('current_solution') or 'Unknown'}
+
+### Why Current Solution Fails
+{row.get('why_current_solution_fails') or 'Unknown'}
+
+## Market Analysis
+
+**Category:** {row.get('category') or 'Unknown'}
+
+**Market Size:** {row.get('market_size') or 'Unknown'}
+
+**Market Maturity:** {row.get('market_maturity') or 'Unknown'}
+
+**Competition Level:** {int(row.get('competition_level') or 0)}/10
+
+### Competitors
+{row.get('competition') or 'Unknown'}
+
+## Business Analysis
+
+### Business Model
+{row.get('business_model') or 'Unknown'}
+
+### Pricing Strategy
+{row.get('pricing_strategy') or 'Unknown'}
+
+### Competitive Advantage
+{row.get('competitive_advantage') or 'Unknown'}
+
+### MVP Description
+{row.get('mvp_description') or 'Unknown'}
+
+## Investment Evaluation
+
+| Category | Score |
+|----------|------:|
+| Problem | {int(row.get('problem_score') or 0)}/10 |
+| Market | {int(row.get('market_score') or 0)}/10 |
+| Competition | {int(row.get('competition_score') or 0)}/10 |
+| Business | {int(row.get('business_score') or 0)}/10 |
+| Execution | {int(row.get('execution_score') or 0)}/10 |
+| AI Leverage | {int(row.get('ai_leverage_score') or 0)}/10 |
+| Distribution | {int(row.get('distribution_score') or 0)}/10 |
+
+## Cash Machine Score
+
+**{int(row.get('cash_machine_score') or 0)}/100**
+
+**Build Verdict:** {row.get('build_verdict') or 'Unknown'}
+
+**Confidence:** {int(row.get('confidence') or 0)}/10
+
+### Confidence Reason
+{row.get('confidence_reason') or 'Unknown'}
+
+### Full Reasoning
+{row.get('reasoning') or 'Unknown'}
+
+## Key Evidence
+{bullets(key_evidence)}
+
+## Red Flags
+{bullets(red_flags)}
+
+## Biggest Risk
+{row.get('biggest_risk') or 'Unknown'}
+
+## Next Action
+{row.get('next_action') or 'Unknown'}
+
+## Recommended Next Steps
+{row.get('recommended_next_steps') or 'Unknown'}
+
+## Topics
+{topic_bullets}
+"""
+
+    def _database_reports(self) -> list[dict]:
+        db = Database()
+        try:
+            cursor = db.conn.execute(
+                """
+                SELECT a.*, o.source, o.title, o.url
+                FROM analyses a
+                JOIN opportunities o ON o.id = a.opportunity_id
+                ORDER BY a.created_at DESC, a.id DESC
+                """
+            )
+            columns = [d[0] for d in cursor.description or []]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        finally:
+            db.conn.close()
+
+        reports: list[dict] = []
+        seen: set[int] = set()
+        for row in rows:
+            opportunity_id = int(row.get("opportunity_id") or 0)
+            if opportunity_id in seen:
+                continue
+            seen.add(opportunity_id)
+            content = self._database_report_content(row)
+            verdict = str(row.get("build_verdict") or "Unknown")
+            reports.append(
+                {
+                    "id": opportunity_id,
+                    "opportunity_id": opportunity_id,
+                    "title": row.get("title") or f"Report #{opportunity_id}",
+                    "source": row.get("source") or "Unknown",
+                    "url": row.get("url") or "",
+                    "cash_machine_score": int(row.get("cash_machine_score") or 0),
+                    "verdict": verdict,
+                    "recommendation": str(row.get("investment_recommendation") or "Unknown"),
+                    "confidence": int(row.get("confidence") or 0),
+                    "generated_at": self._format_datetime(row.get("created_at")),
+                    "reasoning_excerpt": self._compact_text(row.get("reasoning"), 180),
+                    "next_action": self._compact_text(row.get("next_action"), 220),
+                    "biggest_risk": self._compact_text(row.get("biggest_risk"), 220),
+                    "recommended_next_steps": self._compact_text(row.get("recommended_next_steps"), 220),
+                    "tone": self._verdict_tone(verdict),
+                    "status_badge": self._status_badge(verdict),
+                    "content": content,
+                    "html": self._markdown(content),
+                }
+            )
+        return reports
+
     def list_reports(self) -> list[dict]:
-
         report_paths = self._report_paths()
-
-        return [
-            self._build_report_card(path, include_html=False)
-            for path in report_paths
-        ]
+        if report_paths:
+            return [
+                self._build_report_card(path, include_html=False)
+                for path in report_paths
+            ]
+        return self._database_reports()
 
     def get_report(self, report_id: int | None = None) -> dict | None:
-
         report_paths = self._report_paths()
+        if report_paths:
+            selected_path = None
+            if report_id is not None:
+                for path in report_paths:
+                    try:
+                        current_id = int(path.stem)
+                    except ValueError:
+                        continue
+                    if current_id == report_id:
+                        selected_path = path
+                        break
+            selected_path = selected_path or report_paths[0]
+            return self._build_report_card(selected_path, include_html=True)
 
-        if not report_paths:
+        reports = self._database_reports()
+        if not reports:
             return None
-
-        selected_path = None
-
         if report_id is not None:
-
-            for path in report_paths:
-
-                try:
-                    current_id = int(path.stem)
-                except ValueError:
-                    continue
-
-                if current_id == report_id:
-                    selected_path = path
-                    break
-
-        if selected_path is None:
-            selected_path = report_paths[0]
-
-        return self._build_report_card(
-            selected_path,
-            include_html=True,
-        )
+            for report in reports:
+                if report["id"] == report_id:
+                    return report
+        return reports[0]
 
     def get_reports_data(self, selected_report_id: int | None = None) -> dict:
 

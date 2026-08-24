@@ -46,9 +46,9 @@ class WeeklyBriefService:
 
     def build(self) -> dict[str, Any]:
         rows = self._weekly_rows()
-        build = sum(1 for row in rows if row.get("portfolio_status") == "BUILD")
-        watch = sum(1 for row in rows if row.get("portfolio_status") == "WATCH")
-        skip = sum(1 for row in rows if row.get("portfolio_status") == "SKIP")
+        build = sum(1 for row in rows if (row.get("build_verdict") or row.get("portfolio_status")) == "BUILD")
+        watch = sum(1 for row in rows if (row.get("build_verdict") or row.get("portfolio_status")) == "WATCH")
+        skip = sum(1 for row in rows if (row.get("build_verdict") or row.get("portfolio_status")) == "SKIP")
 
         dashboard = DashboardService()
         lifecycle = OpportunityLifecycle()

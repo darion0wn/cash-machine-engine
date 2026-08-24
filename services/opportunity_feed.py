@@ -60,7 +60,7 @@ class OpportunityFeed:
                     "source": row[2],
                     "cash_machine_score": row[3],
                     "ranking_score": row[4],
-                    "portfolio_status": row[5],
+                    "portfolio_status": row[6] or row[5],
                     "build_verdict": row[6],
                 }
             )

@@ -92,7 +92,7 @@ class TelegramAlertService:
         # qualifying BUILD to notify even when the persisted decision was
         # already BUILD before the alert system saw it. The alert fingerprint
         # prevents duplicate sends when nothing materially changed.
-        return "BUILD_SIGNAL", "The opportunity qualifies as a high-signal BUILD candidate."
+        return "BUILD_SIGNAL", "L'opportunità ha superato le soglie per un segnale BUILD ad alta priorità."
 
     @staticmethod
     def _message(
@@ -123,8 +123,19 @@ class TelegramAlertService:
         )
         lifecycle_stage = TelegramAlertService._text(
             lifecycle.get("current_label"),
-            "Building",
+            "In analisi",
         )
+        lifecycle_labels = {
+            "BUILDING": "In costruzione",
+            "BUILDING NOW": "In costruzione",
+            "ANALYZED": "Analizzata",
+            "VALIDATING": "In validazione",
+            "VALIDATED": "Validata",
+            "WATCH": "Da monitorare",
+            "SKIP": "Da scartare",
+            "KILLED": "Archiviata",
+        }
+        lifecycle_stage = lifecycle_labels.get(lifecycle_stage.upper(), lifecycle_stage)
         problem = TelegramAlertService._text(
             analysis.get("problem"),
             "No problem summary available.",
@@ -135,23 +146,23 @@ class TelegramAlertService:
         )
 
         lines = [
-            "🚨 <b>Cash Machine Signal</b>",
+            "🚨 <b>Segnale Cash Machine</b>",
             "",
             f"<b>{TelegramAlertService._escape_html(title)}</b>",
-            f"Source: {TelegramAlertService._escape_html(source)}",
+            f"Fonte: {TelegramAlertService._escape_html(source)}",
             "",
             f"💰 Cash Score: <b>{cash_score}/100</b>",
-            f"✅ Validation: <b>{validation_score}/100</b>",
-            f"🎯 Confidence: <b>{confidence}/10</b>",
-            f"📈 Trend Score: <b>{trend_score}</b>",
-            f"🧠 Decision: <b>{TelegramAlertService._escape_html(decision_label)}</b>",
-            f"🔄 Lifecycle: {TelegramAlertService._escape_html(lifecycle_stage)}",
+            f"✅ Validazione: <b>{validation_score}/100</b>",
+            f"🎯 Affidabilità: <b>{confidence}/10</b>",
+            f"📈 Punteggio trend: <b>{trend_score}</b>",
+            f"🧠 Decisione: <b>{TelegramAlertService._escape_html(decision_label)}</b>",
+            f"🔄 Ciclo: {TelegramAlertService._escape_html(lifecycle_stage)}",
             "",
-            f"<b>Why it matters</b>\n{TelegramAlertService._escape_html(problem)}",
+            f"<b>Perché è interessante</b>\n{TelegramAlertService._escape_html(problem)}",
             "",
-            f"<b>Biggest risk</b>\n{TelegramAlertService._escape_html(risk)}",
+            f"<b>Rischio principale</b>\n{TelegramAlertService._escape_html(risk)}",
             "",
-            f"<b>Next action</b>\n{TelegramAlertService._escape_html(next_action)}",
+            f"<b>Prossima azione</b>\n{TelegramAlertService._escape_html(next_action)}",
             "",
             f"<i>{TelegramAlertService._escape_html(reason)}</i>",
         ]
@@ -177,7 +188,7 @@ class TelegramAlertService:
         if url:
             payload["reply_markup"] = {
                 "inline_keyboard": [
-                    [{"text": "Open opportunity", "url": url}]
+                    [{"text": "Apri opportunità", "url": url}]
                 ]
             }
 

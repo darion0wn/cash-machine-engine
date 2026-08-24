@@ -299,7 +299,7 @@ class FeedService:
 
         effective_status = status if status else filters.get("status", "ALL")
         if effective_status and effective_status != "ALL":
-            clauses.append("a.portfolio_status = ?")
+            clauses.append("COALESCE(NULLIF(a.build_verdict, ''), NULLIF(a.portfolio_status, ''), 'WATCH') = ?")
             params.append(effective_status)
 
         source = filters.get("source", "ALL")
@@ -428,7 +428,7 @@ class FeedService:
                     "cash_machine_score": row.get("cash_machine_score") or 0,
                     "ranking_score": row.get("ranking_score") or 0,
                     "trend_score": row.get("trend_score") or 0,
-                    "portfolio_status": row.get("portfolio_status") or "WATCH",
+                    "portfolio_status": row.get("build_verdict") or row.get("portfolio_status") or "WATCH",
                     "build_verdict": row.get("build_verdict") or "Unknown",
                     "primary_topic": self._primary_topic(
                         merged_topics,
@@ -444,7 +444,7 @@ class FeedService:
                         row.get("problem"),
                     ),
                     "status_badge": self._status_badge(
-                        row.get("portfolio_status")
+                        row.get("build_verdict") or row.get("portfolio_status")
                     ),
                     "is_favorite": bool(row.get("is_favorite")),
                 }
