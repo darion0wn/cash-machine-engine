@@ -58,9 +58,16 @@ class TelegramAlertService:
         decision: dict[str, Any],
         previous_decision: dict[str, Any] | None,
     ) -> tuple[str | None, str]:
+        # Support both the in-memory FounderDecision recommendation shape
+        # (effective_decision/recommended_decision) and the persisted decision
+        # row shape (decision). This keeps alert eligibility consistent for
+        # pipeline runs, backfills, and direct/manual replays.
         effective = str(
             decision.get("effective_decision")
             or decision.get("recommended_decision")
+            or decision.get("decision")
+            or analysis.get("build_verdict")
+            or analysis.get("portfolio_status")
             or "WATCH"
         ).upper()
 
@@ -103,7 +110,11 @@ class TelegramAlertService:
         confidence = int(analysis.get("confidence", 0) or 0)
         trend_score = int(analysis.get("trend_score", 0) or 0)
         decision_label = TelegramAlertService._text(
-            decision.get("decision_label"),
+            decision.get("decision_label")
+            or decision.get("effective_decision")
+            or decision.get("recommended_decision")
+            or decision.get("decision")
+            or analysis.get("build_verdict"),
             "BUILD",
         )
         next_action = TelegramAlertService._text(
