@@ -3,7 +3,7 @@
 Cash Machine Engine runs in production as two separate services sharing PostgreSQL:
 
 ```text
-                    Render
+                    Cloud provider
                       |
           +-----------+-----------+
           |                       |
@@ -46,18 +46,18 @@ The cloud scheduler runs the existing one-shot refresh command:
 python -m web.services.refresh_service --trigger scheduled
 ```
 
-Render uses this cron expression as the production source of truth:
+Cloud provider uses this cron expression as the production source of truth:
 
 ```text
 0 5,11,17 * * *
 ```
 
-Render cron schedules are UTC. Therefore this runs at:
+Cloud provider cron schedules are UTC. Therefore this runs at:
 
 - 07:00, 13:00 and 19:00 Europe/Rome during daylight-saving time (CEST)
 - 06:00, 12:00 and 18:00 Europe/Rome during standard time (CET)
 
-The Render Cron schedule is intentionally independent from the local in-process `SCHEDULER_TIMES` setting. The local setting is used only when the in-process scheduler is enabled.
+The Cloud provider Cron schedule is intentionally independent from the local in-process `SCHEDULER_TIMES` setting. The local setting is used only when the in-process scheduler is enabled.
 
 The important property is that the refresh runs independently of the founder's computer, browser, VS Code, or Codespace.
 
@@ -75,7 +75,7 @@ The existing local SQLite database is not used by the production services.
 ## First deployment
 
 1. Push this repository to the configured branch.
-2. Create the Render Blueprint from `render.yaml`.
+2. Create the Cloud provider Blueprint from `render.yaml`.
 3. Enter the secret environment variables when prompted.
 4. Wait for the PostgreSQL database and web service to become healthy.
 5. Migrate the existing local SQLite data once:
@@ -85,7 +85,7 @@ python -m database.migrate_sqlite_to_postgres   --source database/opportunities.
 ```
 
 6. Trigger one manual production refresh and verify a successful `refresh_runs` entry.
-7. Confirm the first scheduled execution from the Render Cron logs.
+7. Confirm the first scheduled execution from the Cloud provider Cron logs.
 
 Do not run the SQLite-to-PostgreSQL migration automatically on every deploy; the migration script is designed as a one-time data migration and would duplicate rows on repeated deployment.
 

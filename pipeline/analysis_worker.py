@@ -1,4 +1,5 @@
 from database.analysis_repository import AnalysisRepository
+from database.database import Database
 from database.opportunity_repository import OpportunityRepository
 from models.opportunity_status import OpportunityStatus
 from services.analyzer import Analyzer
@@ -13,9 +14,10 @@ class AnalysisWorker:
 
         self.analyzer = Analyzer()
 
-        self.opportunity_repository = OpportunityRepository()
+        self.db = Database()
+        self.opportunity_repository = OpportunityRepository(db=self.db)
 
-        self.analysis_repository = AnalysisRepository()
+        self.analysis_repository = AnalysisRepository(db=self.db)
 
         self.report_generator = ReportGenerator()
 
@@ -65,12 +67,16 @@ class AnalysisWorker:
                 autonomous = AutonomousOpportunityPipeline.process(
                     opportunity,
                     analysis,
+                    db=self.db,
                 )
-                print(
-                    "[INFO] Autonomous evidence, validation, decision and "
-                    "lifecycle synchronized: "
-                    f"{autonomous['decision']['effective_decision']}"
-                )
+                if autonomous.get("skipped"):
+                    print("[INFO] Autonomous post-processing skipped: " + str(autonomous.get("reason")))
+                else:
+                    print(
+                        "[INFO] Autonomous evidence, validation, decision and "
+                        "lifecycle synchronized: "
+                        f"{autonomous['decision']['effective_decision']}"
+                    )
             except Exception as automation_error:
                 # The AI analysis remains a valid completed analysis even if
                 # supporting automation has a transient persistence problem.
@@ -102,3 +108,6 @@ class AnalysisWorker:
             print(e)
 
             return False
+
+    def close(self):
+        self.db.conn.close()

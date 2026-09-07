@@ -7,17 +7,20 @@ def main():
     processed = 0
     failed = False
 
-    while processed < MAX_ANALYSIS_PER_RUN:
-        result = worker.run_once()
+    try:
+        while processed < MAX_ANALYSIS_PER_RUN:
+            result = worker.run_once()
 
-        if result is None:
-            break
+            if result is None:
+                break
 
-        if result is False:
-            failed = True
-            break
+            if result is False:
+                failed = True
+                break
 
-        processed += 1
+            processed += 1
+    finally:
+        worker.close()
 
     print()
     print("=" * 80)

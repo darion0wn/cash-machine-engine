@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from database.database import Database
 from database.founder_decision_repository import FounderDecisionRepository
 
 
 class FounderDecision:
     DECISIONS = ("BUILD", "VALIDATE", "WATCH", "KILL")
 
-    def __init__(self) -> None:
-        self.repository = FounderDecisionRepository()
+    def __init__(self, db: Database | None = None) -> None:
+        self.repository = FounderDecisionRepository(db=db)
 
     @staticmethod
     def _evidence_counts(evidence: dict | None) -> tuple[int, int, int]:

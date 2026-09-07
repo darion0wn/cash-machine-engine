@@ -34,6 +34,7 @@ class WeeklyBriefService:
                 o.source,
                 a.cash_machine_score,
                 a.ranking_score,
+                a.build_verdict,
                 a.portfolio_status,
                 a.created_at
             FROM analyses a

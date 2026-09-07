@@ -9,8 +9,9 @@ class EvidenceRepository:
     VALID_CONFIDENCE = {"LOW", "MEDIUM", "HIGH"}
     AUTOMATIC_SOURCE_PREFIX = "engine:"
 
-    def __init__(self) -> None:
-        self.db = Database()
+    def __init__(self, db: Database | None = None) -> None:
+        self.db = db or Database()
+        self._owns_db = db is None
 
     def add(
         self,
@@ -151,4 +152,5 @@ class EvidenceRepository:
         return result
 
     def close(self) -> None:
-        self.db.conn.close()
+        if self._owns_db:
+            self.db.conn.close()

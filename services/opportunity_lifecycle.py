@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from database.database import Database
 from database.lifecycle_repository import LifecycleRepository
 
 
@@ -31,8 +32,8 @@ class OpportunityLifecycle:
 
     TERMINAL = {"REVENUE_500", "KILLED"}
 
-    def __init__(self) -> None:
-        self.repository = LifecycleRepository()
+    def __init__(self, db: Database | None = None) -> None:
+        self.repository = LifecycleRepository(db=db)
 
     @classmethod
     def infer_default_stage(cls, analysis: dict | None) -> str:

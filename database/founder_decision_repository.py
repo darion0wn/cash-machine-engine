@@ -7,8 +7,9 @@ class FounderDecisionRepository:
 
     VALID_DECISIONS = {"BUILD", "VALIDATE", "WATCH", "KILL"}
 
-    def __init__(self) -> None:
-        self.db = Database()
+    def __init__(self, db: Database | None = None) -> None:
+        self.db = db or Database()
+        self._owns_db = db is None
 
     def save(
         self,
@@ -133,4 +134,5 @@ class FounderDecisionRepository:
         }
 
     def close(self) -> None:
-        self.db.conn.close()
+        if self._owns_db:
+            self.db.conn.close()

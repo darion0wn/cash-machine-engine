@@ -7,8 +7,9 @@ from models.opportunity_status import OpportunityStatus
 
 class OpportunityRepository:
 
-    def __init__(self):
-        self.db = Database()
+    def __init__(self, db: Database | None = None):
+        self.db = db or Database()
+        self._owns_db = db is None
 
     def exists(
         self,
@@ -203,3 +204,6 @@ class OpportunityRepository:
         )
 
         self.db.conn.commit()
+    def close(self):
+        if self._owns_db:
+            self.db.conn.close()

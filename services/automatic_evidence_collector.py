@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from database.database import Database
 from database.evidence_repository import EvidenceRepository
 
 
@@ -22,8 +23,8 @@ class AutomaticEvidenceCollector:
         r"|\d+(?:[.,]\d+)?\s*(?:€|eur|\$|usd|£|gbp)"
     )
 
-    def __init__(self) -> None:
-        self.repository = EvidenceRepository()
+    def __init__(self, db: Database | None = None) -> None:
+        self.repository = EvidenceRepository(db=db)
 
     @staticmethod
     def _known(value: Any) -> bool:

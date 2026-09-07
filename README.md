@@ -89,7 +89,7 @@ Defaults for the local in-process scheduler:
 - `SCHEDULER_CHECK_SECONDS = 30`
 - `SCHEDULER_CATCH_UP = True`
 
-In cloud production, the Render Cron schedule is the source of truth; the web process keeps the in-process scheduler disabled.
+In cloud production, the external Cron/Job schedule is the source of truth; the web process keeps the in-process scheduler disabled.
 
 The scheduler runs at most one automatic refresh per calendar day. If the app starts after the configured time and no successful refresh has happened that day, it performs a catch-up refresh automatically.
 
@@ -101,7 +101,7 @@ For local development, the scheduler can run in-process. In production, the web 
 python -m web.services.refresh_service --trigger scheduled
 ```
 
-The production web service and Cron Job share the same PostgreSQL database.
+The production web service and external refresh job share the same PostgreSQL database.
 
 ## Production deployment
 
@@ -166,7 +166,7 @@ Internal project.
 
 The production deployment uses a separate web service, one scheduled refresh job, and managed PostgreSQL. The scheduled job runs the existing refresh pipeline three times per day at `05:00`, `11:00` and `17:00` UTC (approximately `07:00`, `13:00` and `19:00` Europe/Rome during daylight saving time).
 
-The infrastructure is defined in `render.yaml`. The web service disables the in-process scheduler; the Cron service runs:
+The repository includes `render.yaml` as a legacy Render deployment blueprint. The active production platform may use its own external Cron/Job configuration. The web service should keep the in-process scheduler disabled; the external job runs:
 
 ```bash
 python -m web.services.refresh_service --trigger scheduled
@@ -179,7 +179,7 @@ See `docs/production_runtime.md` for the deployment and migration procedure.
 
 ## Cloud deployment
 
-Production uses Render with three resources defined in `render.yaml`:
+A Render blueprint is retained in `render.yaml` for compatibility; the active production platform may differ. The intended topology is:
 
 - a Docker-based Web Service running Gunicorn;
 - a Docker-based Cron Job running the existing one-shot refresh command three times per day;
@@ -197,4 +197,4 @@ Before the first production launch:
 6. Trigger one manual Cron run and verify `refresh_runs` and the Dashboard.
 7. Confirm the scheduled runs in the Cron logs.
 
-The application does not run the in-process scheduler in production. Render Cron is the production scheduler.
+The application does not run the in-process scheduler in production. The external cloud Cron/Job is the production scheduler.

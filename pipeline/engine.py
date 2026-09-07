@@ -1,12 +1,13 @@
+from database.database import Database
 from database.opportunity_repository import OpportunityRepository
 from models.opportunity import Opportunity
 
 
 class Engine:
 
-    def __init__(self):
+    def __init__(self, db: Database | None = None):
 
-        self.repository = OpportunityRepository()
+        self.repository = OpportunityRepository(db=db)
 
     def process(
         self,

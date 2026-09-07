@@ -15,8 +15,9 @@ class LifecycleRepository:
         "KILLED",
     }
 
-    def __init__(self) -> None:
-        self.db = Database()
+    def __init__(self, db: Database | None = None) -> None:
+        self.db = db or Database()
+        self._owns_db = db is None
 
     def current(self, opportunity_id: int) -> dict | None:
         row = self.db.conn.execute(
@@ -91,4 +92,5 @@ class LifecycleRepository:
         )
 
     def close(self) -> None:
-        self.db.conn.close()
+        if self._owns_db:
+            self.db.conn.close()

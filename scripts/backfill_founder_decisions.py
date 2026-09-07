@@ -108,8 +108,6 @@ def main() -> int:
     args = _parse_args()
     db = Database()
     rows = _load_rows(db, args.limit)
-    db.conn.close()
-
     processed = 0
     failed = 0
     alerts_sent = 0
@@ -123,6 +121,7 @@ def main() -> int:
                 opportunity,
                 analysis,
                 notify=args.notify,
+                db=db,
             )
             alert = result.get("telegram_alert") or {}
             if alert.get("sent"):
@@ -134,6 +133,7 @@ def main() -> int:
             failed += 1
             print(f"[WARN] Opportunity {opportunity_id} backfill failed: {exc}")
 
+    db.conn.close()
     print(
         "Founder decision backfill completed: "
         f"processed={processed}, failed={failed}, "

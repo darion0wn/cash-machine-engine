@@ -5,7 +5,7 @@ This document describes the production runtime for Cash Machine Engine.
 ## Topology
 
 ```text
-Render
+Cloud provider
 ├── Web Service
 │   └── Gunicorn → Flask
 ├── Cron Job
@@ -15,9 +15,9 @@ Render
     └── Cron Job
 ```
 
-## Render configuration
+## Cloud deployment configuration
 
-The repository contains a `render.yaml` Blueprint.
+The repository contains a `render.yaml` Blueprint for legacy Render deployments; the active production platform can use its own service/job configuration.
 
 It creates:
 
@@ -27,17 +27,17 @@ It creates:
 
 Both application services use the same PostgreSQL connection string.
 
-The web service exposes `/health`. The health endpoint checks both the application process and database connectivity; Render should only consider the deployment healthy when both are available.
+The web service exposes `/health`. The health endpoint checks both the application process and database connectivity; The cloud platform should only consider the deployment healthy when both are available.
 
 ## Scheduled refresh
 
-The production Cron Job runs at:
+The production Cron/Job should run three times per day:
 
 ```text
 0 5,11,17 * * *
 ```
 
-Render cron schedules are UTC.
+If the active scheduler uses UTC, configure the three desired UTC slots.
 
 That is approximately:
 
@@ -62,7 +62,7 @@ The limit is an upper bound only: the existing pipeline may analyze fewer items 
 
 Do not commit `.env` or secret values to Git.
 
-The Blueprint uses a shared Render environment group for:
+The deployment should provide these shared secret environment variables:
 
 - `GEMINI_API_KEY`
 - `OPENAI_API_KEY`
@@ -70,7 +70,7 @@ The Blueprint uses a shared Render environment group for:
 - `PRODUCTHUNT_API_KEY`
 - `PRODUCTHUNT_API_SECRET`
 
-Populate these values in Render after creating the Blueprint.
+Populate these values in the active cloud platform.
 
 ## One-time data migration
 
@@ -82,7 +82,7 @@ Before the first production run, migrate the existing local database once:
 python -m database.migrate_sqlite_to_postgres   --source database/opportunities.db   --dsn "$DATABASE_URL"
 ```
 
-Use the production PostgreSQL connection string from the Render database.
+Use the production PostgreSQL connection string from the managed database.
 
 Do not place that connection string in Git.
 
@@ -112,4 +112,4 @@ After the first deploy:
 
 Once the first smoke test succeeds, the founder computer does not need to stay online.
 
-The cloud Web Service hosts the Founder Workspace and the Cron Job runs the refresh pipeline independently.
+The cloud Web Service hosts the Founder Workspace and the external refresh job runs the pipeline independently.

@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from database.database import Database
 from database.evidence_repository import EvidenceRepository
 
 
 class EvidenceTracker:
     STATUS_SCORE = {"PASS": 10, "PARTIAL": 5, "FAIL": 0}
 
-    def __init__(self) -> None:
-        self.repository = EvidenceRepository()
+    def __init__(self, db: Database | None = None) -> None:
+        self.repository = EvidenceRepository(db=db)
 
     def add(self, opportunity_id: int, **payload: Any) -> int:
         return self.repository.add(opportunity_id, **payload)

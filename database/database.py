@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,11 @@ DB_BACKEND = os.getenv(
     "DB_BACKEND",
     "postgres" if DATABASE_URL.startswith(("postgres://", "postgresql://")) else "sqlite",
 ).strip().lower()
+
+_SCHEMA_INIT_LOCK = threading.Lock()
+_SCHEMA_INITIALIZED = False
+_LOCAL_ADVISORY_LOCKS: dict[str, threading.Lock] = {}
+_LOCAL_ADVISORY_LOCKS_GUARD = threading.Lock()
 
 
 def _postgres_params(sql: str) -> str:
@@ -116,8 +122,70 @@ class Database:
                 "Use 'sqlite' or 'postgres'."
             )
 
-        self.create_tables()
-        self.migrate()
+        self._ensure_schema()
+
+    def _ensure_schema(self) -> None:
+        global _SCHEMA_INITIALIZED
+
+        if _SCHEMA_INITIALIZED:
+            return
+
+        with _SCHEMA_INIT_LOCK:
+            if _SCHEMA_INITIALIZED:
+                return
+
+            if self._backend == "postgres":
+                cursor = self.conn.cursor()
+                cursor.execute(
+                    "SELECT pg_advisory_lock(hashtext('cash_machine_engine:schema'))"
+                )
+                try:
+                    self.create_tables()
+                    self.migrate()
+                finally:
+                    cursor.execute(
+                        "SELECT pg_advisory_unlock(hashtext('cash_machine_engine:schema'))"
+                    )
+                    self.conn.commit()
+            else:
+                self.create_tables()
+                self.migrate()
+
+            _SCHEMA_INITIALIZED = True
+
+    def try_advisory_lock(self, key: str) -> bool:
+        key = str(key or "").strip()
+        if not key:
+            raise ValueError("Advisory lock key is required.")
+
+        if self._backend == "postgres":
+            row = self.conn.execute(
+                "SELECT pg_try_advisory_lock(hashtext(?))",
+                (key,),
+            ).fetchone()
+            return bool(row and row[0])
+
+        with _LOCAL_ADVISORY_LOCKS_GUARD:
+            lock = _LOCAL_ADVISORY_LOCKS.setdefault(key, threading.Lock())
+        return lock.acquire(blocking=False)
+
+    def release_advisory_lock(self, key: str) -> None:
+        key = str(key or "").strip()
+        if not key:
+            return
+
+        if self._backend == "postgres":
+            self.conn.execute(
+                "SELECT pg_advisory_unlock(hashtext(?))",
+                (key,),
+            ).fetchone()
+            self.conn.commit()
+            return
+
+        with _LOCAL_ADVISORY_LOCKS_GUARD:
+            lock = _LOCAL_ADVISORY_LOCKS.get(key)
+        if lock is not None and lock.locked():
+            lock.release()
 
     @property
     def backend(self) -> str:
