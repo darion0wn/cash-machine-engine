@@ -259,6 +259,28 @@ class AnalysisRepository:
         )
 
         self.db.conn.commit()
+
+    def update_rankings_batch(self, updates: list[tuple[int, str, int]]) -> int:
+        """Update ranking fields in the caller's transaction.
+
+        Each item is ``(ranking_score, portfolio_status, analysis_id)``. This
+        method deliberately does not commit so a rebuild can update all rows
+        atomically. The existing ``update_ranking`` method remains available
+        for backwards compatibility.
+        """
+        if not updates:
+            return 0
+
+        cursor = self.db.conn.cursor()
+        cursor.executemany(
+            """
+            UPDATE analyses
+            SET ranking_score = ?, portfolio_status = ?
+            WHERE id = ?
+            """,
+            updates,
+        )
+        return cursor.rowcount
     def close(self):
         if self._owns_db:
             self.db.conn.close()
